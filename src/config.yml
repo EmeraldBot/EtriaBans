@@ -1,0 +1,11 @@
+SQL:
+  engine: sqlite
+  host: localhost
+  password: password
+  database: minecraft
+  username: root
+  port: 3306
+Settings:  
+  CheckIPOnLogin: true
+  CanOnlyUnbanOwnBans: true
+  CanOnlyUnmuteOwnMutes: true

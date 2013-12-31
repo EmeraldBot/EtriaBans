@@ -1,0 +1,66 @@
+name: EtriaBans
+author: MistPhizzle
+version: 1.0.0
+main: com.etriacraft.EtriaBans.EtriaBans
+commands:
+  ban:
+  tempban:
+  unban:
+  kick:
+  warn:
+  mute:
+  tempmute:
+  unmute:
+  banip:
+  checkip:
+  records:
+  banrecords:
+  kickrecords:
+  muterecords:
+  warnrecords:
+  editban:
+  editmute:
+  etriabans:
+    aliases: [eb]
+permissions:
+  etriabans.admin:
+    default: op
+    children:
+      etriabans.ban: true
+      etriabans.unban: true
+      etriabans.tempban: true
+      etriabans.announce: true
+      etriabans.kick: true
+      etriabans.warn: true
+      etriabans.mute: true
+      etriabans.unmute: true
+      etriabans.tempmute: true
+      etriabans.banip: true
+      etriabans.checkip: true
+      etriabans.records.own: true
+      etriabans.records.all: true
+      etriabans.records.canseeip: true
+      etriabans.banrecords.all: true
+      etriabans.banrecords.own: true
+      etriabans.banrecords.byid: true
+      etriabans.muterecords.all: true
+      etriabans.muterecords.own: true
+      etriabans.muterecords.byid: true
+      etriabans.kickrecords.all: true
+      etriabans.kickrecords.own: true
+      etriabans.kickrecords.byid: true
+      etriabans.exempt.bans: true
+      etriabans.exempt.mutes: true
+      etriabans.exempt.warns: true
+      etriabans.exempt.kicks: true
+      etriabans.exempt.bans.override: true
+      etriabans.exempt.mutes.override: true
+      etriabans.exempt.warns.override: true
+      etriabans.exempt.kicks.override: true
+      etriabans.editban: true
+      etriabans.editmute: true
+      etriabans.unban.override: true
+      etriabans.unmute.override: true
+      etriabans.info: true
+      etriabans.export: true
+      etriabans.import: true
