@@ -10,6 +10,7 @@ import org.bukkit.command.PluginCommand;
 
 import com.etriacraft.EtriaBans.EtriaBans;
 import com.etriacraft.EtriaBans.Methods;
+import com.etriacraft.EtriaBans.Objects.Ban;
 import com.etriacraft.EtriaBans.Objects.Mute;
 
 public class RecordCommands {
@@ -372,12 +373,14 @@ public class RecordCommands {
 						return true;
 					}
 
-					int id = Methods.getCurrentBanID(player);
-					String bandate = Methods.getCurrentBanDate(player);
-					int banlength = Methods.getCurrentBanLength(player);
-					String unbandate = Methods.getCurrentUnbanDate(player);
-					String bannedby = Methods.getCurrentBannedBy(player);
-					String reason = Methods.getCurrentBanReason(player);
+					Ban ban = Methods.getBan(player);
+					
+					int id = ban.getID();
+					String bandate = ban.getDate();
+					int banlength = (int) ban.getLength();
+					String unbandate = ban.getUnbanDate();
+					String bannedby = ban.getBannedBy();
+					String reason = ban.getReason();
 
 					s.sendMessage("§c-----§aEtriaBans Record§c-----");
 					s.sendMessage("§3ID: §a" + id);

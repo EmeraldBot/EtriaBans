@@ -281,7 +281,6 @@ public class Methods {
 				+ "'" + warner.toLowerCase() + "', "
 				+ "'" + reason + "');");
 		Bukkit.getPlayer(player).sendMessage("§cYou have been warned for: §a" + reason + "§c by §a" + warner);
-
 	}
 
 	public static void kickPlayer(String player, String kicker, String reason) {
@@ -292,7 +291,6 @@ public class Methods {
 				+ "'" + kicker.toLowerCase() + "', "
 				+ "'" + reason + "');");
 		Bukkit.getPlayer(player).kickPlayer("§cYou have been kicked for: §f" + reason);
-
 	}
 
 	public static void logNewIP(String player, String ip) {
@@ -993,6 +991,7 @@ public class Methods {
 		return DBConnection.sql.readQuery("SELECT * FROM eb_mutes WHERE player = '" + player.toLowerCase() + "'");
 	}
 	
+	
 	public static int getCurrentBanID(String player) {
 		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE player = '" + player.toLowerCase() + "'");
 		try {
@@ -1020,6 +1019,7 @@ public class Methods {
 		return DBConnection.sql.readQuery("SELECT * FROM eb_previous_mutes WHERE id = " + id);
 	}
 
+	@Deprecated
 	public static String getCurrentBanDate(String player) {
 		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE player = '" + player + "'");
 		try {
@@ -1032,6 +1032,7 @@ public class Methods {
 		return null;
 	}
 
+	@Deprecated
 	public static int getCurrentBanLength(String player) {
 		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE player = '" + player + "'");
 		try {
@@ -1044,6 +1045,7 @@ public class Methods {
 		return 0;
 	}
 
+	@Deprecated
 	public static String getCurrentUnbanDate(String player) {
 		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE player = '" + player + "'");
 		try {
@@ -1056,6 +1058,7 @@ public class Methods {
 		return null;
 	}
 
+	@Deprecated
 	public static String getCurrentBannedBy(String player) {
 		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE player = '" + player + "'");
 		try {
@@ -1069,6 +1072,7 @@ public class Methods {
 	}
 
 
+	@Deprecated
 	public static String getCurrentBanReason(String player) {
 		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE player = '" + player + "'");
 		try {
