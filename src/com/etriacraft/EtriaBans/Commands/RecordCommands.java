@@ -10,6 +10,7 @@ import org.bukkit.command.PluginCommand;
 
 import com.etriacraft.EtriaBans.EtriaBans;
 import com.etriacraft.EtriaBans.Methods;
+import com.etriacraft.EtriaBans.Objects.Mute;
 
 public class RecordCommands {
 
@@ -101,41 +102,38 @@ public class RecordCommands {
 						return true;
 					}
 
-					ResultSet mute = Methods.getCurrentMute(player);
+					Mute mute = Methods.getMute(player);
+					//					ResultSet mute = Methods.getCurrentMute(player);
 
-					try {
-						int id = mute.getInt("id");
-						String mutedate = mute.getString("mutedate");
-						int length = mute.getInt("mutelength");
-						String unmutedate = mute.getString("unmutedate");
-						String mutedby = mute.getString("mutedby");
-						String reason = mute.getString("reason");
+					int id = mute.getID();
+					String mutedate = mute.getDate();
+					int length = (int) mute.getLength();
+					String unmutedate = mute.getUnmuteDate();
+					String mutedby = mute.getMutedBy();
+					String reason = mute.getReason();
 
-						s.sendMessage("§c-----§a" + player + "'s Current Mute§c-----");
-						s.sendMessage("§3ID: §a" + id);
-						s.sendMessage("§3Player: §a" + player);
-						s.sendMessage("§3Muted On: §a" + mutedate);
-						s.sendMessage("§3Muted By: §a" + mutedby);
-						if (Methods.isMuteTemp(player)) {
-							if (length >= 86400) {
-								s.sendMessage("§3Mute Length: §a~" + (length / 86400) + " days");
-							}
-							if (length < 86400 && length >= 3600) {
-								s.sendMessage("§3Mute Length: §a~" + (length / 3600) + " hours");
-							}
-							if (length < 3600 && length >= 60) {
-								s.sendMessage("§3Mute Length: §a~" + (length / 60) + " minutes");
-							}
-							if (length < 60) {
-								s.sendMessage("§3Mute Length: §a~" + length + " seconds");
-							}
-							s.sendMessage("§3Unmute Date: §a" + unmutedate);
+					s.sendMessage("§c-----§a" + player + "'s Current Mute§c-----");
+					s.sendMessage("§3ID: §a" + id);
+					s.sendMessage("§3Player: §a" + player);
+					s.sendMessage("§3Muted On: §a" + mutedate);
+					s.sendMessage("§3Muted By: §a" + mutedby);
+					if (Methods.isMuteTemp(player)) {
+						if (length >= 86400) {
+							s.sendMessage("§3Mute Length: §a~" + (length / 86400) + " days");
 						}
-						s.sendMessage("§3Reason: §a" + reason);
-						return true;
-					} catch (SQLException e) {
-						e.printStackTrace();
+						if (length < 86400 && length >= 3600) {
+							s.sendMessage("§3Mute Length: §a~" + (length / 3600) + " hours");
+						}
+						if (length < 3600 && length >= 60) {
+							s.sendMessage("§3Mute Length: §a~" + (length / 60) + " minutes");
+						}
+						if (length < 60) {
+							s.sendMessage("§3Mute Length: §a~" + length + " seconds");
+						}
+						s.sendMessage("§3Unmute Date: §a" + unmutedate);
 					}
+					s.sendMessage("§3Reason: §a" + reason);
+					return true;
 				}
 				return true;
 			}

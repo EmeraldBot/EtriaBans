@@ -1,8 +1,5 @@
 package com.etriacraft.EtriaBans.Commands;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -12,6 +9,7 @@ import org.bukkit.entity.Player;
 
 import com.etriacraft.EtriaBans.EtriaBans;
 import com.etriacraft.EtriaBans.Methods;
+import com.etriacraft.EtriaBans.Objects.Ban;
 
 public class BanCommands {
 
@@ -73,6 +71,7 @@ public class BanCommands {
 				}
 				
 				Methods.editBan(player, timeInSeconds);
+				s.sendMessage("§7" + player + "'s §aban has been edited.");
 				
 				return true;
 			}
@@ -96,16 +95,12 @@ public class BanCommands {
 				}
 
 				if (plugin.getConfig().getBoolean("Settings.CanOnlyUnbanOwnBans") && !s.hasPermission("etriabans.unban.override")) {
-					ResultSet ban = Methods.getCurrentBan(player);
-					try {
-						String banner = ban.getString("bannedby");
-						
-						if (!s.getName().equalsIgnoreCase(banner)) {
-							s.sendMessage("§cYou can only unban a player you banned.");
-							return true;
-						}
-					} catch (SQLException e) {
-						e.printStackTrace();
+					Ban ban = Methods.getBan(player);
+					
+					String banner = ban.getBannedBy();
+					if (!s.getName().equalsIgnoreCase(banner)) {
+						s.sendMessage("§cYou can only unban a player you banned.");
+						return true;
 					}
 				}
 				

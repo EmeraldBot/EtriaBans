@@ -25,7 +25,7 @@ public class Methods {
 	}
 
 	private static int importPlayerDataTask, importCurrentBanTask, importBanDataTask, importMuteDataTask, importWarnDataTask, importkickDataTask, importCurrentMuteTask, importIPBanDataTask;
-	
+
 	public static HashMap<String, Boolean> bannedPlayers = new HashMap<String, Boolean>();
 	public static HashMap<String, Boolean> mutedPlayers = new HashMap<String, Boolean>();
 	public static Set<String> bannedIPs = new HashSet<String>();
@@ -954,12 +954,45 @@ public class Methods {
 		return null;
 	}
 
+	public static Ban getBan(String player) {
+		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE player = '" + player.toLowerCase() + "'");
+		try {
+			if (rs2.next()) {
+				return new Ban(rs2.getString("player"), rs2.getString("bandate"), rs2.getInt("length"), rs2.getString("unbandate"), rs2.getString("bannedby"), rs2.getString("reason"));
+			} else {
+				return null;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Deprecated
 	public static ResultSet getCurrentBan(String player) {
 		return DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE player = '" + player.toLowerCase() + "'");
 	}
+	
+	public static Mute getMute(String player) {
+		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_mutes WHERE player = '" + player.toLowerCase() + "'");
+		
+		try {
+			if (rs2.next()) {
+				return new Mute(rs2.getString("player"), rs2.getString("mutedate"), rs2.getInt("length"), rs2.getString("unmutedate"), rs2.getString("mutedby"), rs2.getString("reason"));
+			} else {
+				return null;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	@Deprecated
 	public static ResultSet getCurrentMute(String player) {
 		return DBConnection.sql.readQuery("SELECT * FROM eb_mutes WHERE player = '" + player.toLowerCase() + "'");
 	}
+	
 	public static int getCurrentBanID(String player) {
 		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE player = '" + player.toLowerCase() + "'");
 		try {

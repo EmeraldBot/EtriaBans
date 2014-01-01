@@ -1,8 +1,5 @@
 package com.etriacraft.EtriaBans.Commands;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -12,6 +9,7 @@ import org.bukkit.entity.Player;
 
 import com.etriacraft.EtriaBans.EtriaBans;
 import com.etriacraft.EtriaBans.Methods;
+import com.etriacraft.EtriaBans.Objects.Mute;
 
 public class MuteCommands {
 
@@ -97,16 +95,12 @@ public class MuteCommands {
 				}
 				
 				if (plugin.getConfig().getBoolean("Settings.CanOnlyUnmuteOwnMutes") && !s.hasPermission("etriabans.unmute.override")) {
-					ResultSet mute = Methods.getCurrentMute(player);
-					try {
-						
-						String mutedby = mute.getString("mutedby");
-						if (!s.getName().equalsIgnoreCase(mutedby)) {
-							s.sendMessage("§cYou cannot unmute someone you did not mute.");
-							return true;
-						}
-					} catch (SQLException e) {
-						e.printStackTrace();
+					Mute mute = Methods.getMute(player);
+					
+					String mutedby = mute.getMutedBy();
+					if (!s.getName().equalsIgnoreCase(mutedby)) {
+						s.sendMessage("§cYou cannot unmute someone you did not mute.");
+						return true;
 					}
 				}
 
