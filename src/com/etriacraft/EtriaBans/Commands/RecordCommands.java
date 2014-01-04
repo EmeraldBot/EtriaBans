@@ -76,7 +76,7 @@ public class RecordCommands {
 					}
 				}
 
-				if (!args[1].equalsIgnoreCase("past") && args[1].equalsIgnoreCase("current")) {
+				if (!args[1].equalsIgnoreCase("past") && !args[1].equalsIgnoreCase("current")) {
 					s.sendMessage("§3Proper Usage: §6/muterecords [Player] [past|current]");
 					return true;	
 				}
