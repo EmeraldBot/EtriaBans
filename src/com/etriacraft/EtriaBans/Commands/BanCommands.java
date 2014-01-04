@@ -42,16 +42,16 @@ public class BanCommands {
 					s.sendMessage("§cExample: 4d = 4 Days.");
 					return true;
 				}
-				
+
 				String player = args[0];
-				
+
 				if (!Methods.isBanned(player)) {
 					s.sendMessage("§cYou can't edit the ban of a player who isn't banned.");
 					return true;
 				}
-				
+
 				String timeDiff = args[1];
-				
+
 				int timeInSeconds = 0;
 				if (timeDiff.contains("s")) { // banning in seconds.
 					timeInSeconds = Integer.parseInt(timeDiff.replace("s", "")); 
@@ -69,10 +69,10 @@ public class BanCommands {
 					s.sendMessage("§cImproper Time Format");
 					return true;
 				}
-				
+
 				Methods.editBan(player, timeInSeconds);
 				s.sendMessage("§7" + player + "'s §aban has been edited.");
-				
+
 				return true;
 			}
 		}; editban.setExecutor(exe);
@@ -96,14 +96,14 @@ public class BanCommands {
 
 				if (plugin.getConfig().getBoolean("Settings.CanOnlyUnbanOwnBans") && !s.hasPermission("etriabans.unban.override")) {
 					Ban ban = Methods.getBan(player);
-					
+
 					String banner = ban.getBannedBy();
 					if (!s.getName().equalsIgnoreCase(banner)) {
 						s.sendMessage("§cYou can only unban a player you banned.");
 						return true;
 					}
 				}
-				
+
 				Methods.unbanPlayer(player, s.getName());
 				for (Player player2: Bukkit.getOnlinePlayers()) {
 					if (player2.hasPermission("etriabans.announce")) {
@@ -135,28 +135,11 @@ public class BanCommands {
 				String timeDiff = args[1];
 				String reason = Methods.buildString(args, 2, " ");
 
-				Player player3 = Bukkit.getPlayer(player);
-				if (player3 != null) {
-					if (player3 == s) {
-						s.sendMessage("§cYou can't ban yourself.");
-						return true;
-					}
-					if (Methods.isBanned(player3.getName())) {
-						s.sendMessage("§cThat player is already banned.");
-						return true;
-					}
-					
-					if (player3.hasPermission("etriabans.exempt.bans") && !s.hasPermission("etriabans.exempt.bans.override")) {
-						s.sendMessage("§cThat player cannot be banned.");
-						return true;
-					}
-				}
-
 				if (Methods.isBanned(player)) {
 					s.sendMessage("§cThat player is already banned.");
 					return true;
 				}
-				
+
 				int timeInSeconds = 0;
 				if (timeDiff.contains("s")) { // banning in seconds.
 					timeInSeconds = Integer.parseInt(timeDiff.replace("s", "")); 
@@ -172,6 +155,42 @@ public class BanCommands {
 				}
 				if (timeInSeconds == 0) {
 					s.sendMessage("§cImproper Time Format");
+					return true;
+				}
+				
+				Player player3 = Bukkit.getPlayer(player);
+				if (player3 != null) {
+					if (player3 == s) {
+						s.sendMessage("§cYou can't ban yourself.");
+						return true;
+					}
+					if (Methods.isBanned(player3.getName())) {
+						s.sendMessage("§cThat player is already banned.");
+						return true;
+					}
+
+					if (player3.hasPermission("etriabans.exempt.bans") && !s.hasPermission("etriabans.exempt.bans.override")) {
+						s.sendMessage("§cThat player cannot be banned.");
+						return true;
+					}
+					
+					Methods.tempBanPlayer(player, reason, s.getName(), timeInSeconds);
+					for (Player player2: Bukkit.getOnlinePlayers()) {
+						if (player2.hasPermission("etriabans.announce")) {
+							if (timeDiff.contains("s")) {
+								player2.sendMessage("§7" + player3.getName() + "§a has been banned for §7" + timeDiff.replace("s", "") + " seconds.");
+							}
+							if (timeDiff.contains("m")) {
+								player2.sendMessage("§7" + player3.getName() + "§a has been banned for §7" + timeDiff.replace("m", "") + " minutes");
+							}
+							if (timeDiff.contains("h")) {
+								player2.sendMessage("§7" + player3.getName() + "§a has been banned for §7" + timeDiff.replace("h", "") + " hours.");
+							}
+							if (timeDiff.contains("d")) {
+								player2.sendMessage("§7" + player3.getName() + "§a has been banned for §7" + timeDiff.replace("d", "") + " days.");
+							}
+						}
+					}
 					return true;
 				}
 
@@ -211,7 +230,7 @@ public class BanCommands {
 
 				String reason = Methods.buildString(args, 1, " ");
 				String player = args[0];
-				
+
 				Player player3 = Bukkit.getPlayer(player);
 				if (player3 != null) {
 					if (player3 == s) {
@@ -226,6 +245,14 @@ public class BanCommands {
 						s.sendMessage("§cThat player is already banned.");
 						return true;
 					}
+					
+					Methods.banPlayer(player3.getName(), reason, s.getName());
+					for (Player player2: Bukkit.getOnlinePlayers()) {
+						if (player2.hasPermission("etriabans.announce")) {
+							player2.sendMessage("§7" + player3.getName() + "§a has been banned for §7" + reason);
+						}
+					}
+					return true;
 				}
 
 				if (Methods.isBanned(player)) {
