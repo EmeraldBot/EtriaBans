@@ -87,11 +87,11 @@ public class RecordCommands {
 					ResultSet mutes = Methods.getAllPreviousMutes(player);
 
 					try {
-						while (mutes.next()) {
+						do {
 							int id = mutes.getInt("id");
 							String reason = mutes.getString("reason");
 							s.sendMessage("§6" + id + " §f- §3" + reason);
-						}
+						} while (mutes.next());
 					} catch (SQLException e) {
 						e.printStackTrace();
 					}
@@ -206,9 +206,9 @@ public class RecordCommands {
 
 						s.sendMessage("§c----§aEtriaBans Warn Record§c-----");
 						s.sendMessage("§6ID §f- §3Reason");
-						while (warns.next()) {
+						do {
 							s.sendMessage("§6" + warns.getString("id") + " §f- §3" + warns.getString("reason"));
-						}
+						} while (warns.next());
 						return true;
 					} catch (SQLException e) {
 						e.printStackTrace();
@@ -286,9 +286,9 @@ public class RecordCommands {
 
 						s.sendMessage("§c----§aEtriaBans Kick Record§c-----");
 						s.sendMessage("§6ID §f- §3Reason");
-						while (kicks.next()) {
+						do {
 							s.sendMessage("§6" + kicks.getString("id") + " §f- §3" + kicks.getString("reason"));
-						}
+						} while (kicks.next());
 						return true;
 					} catch (SQLException e) {
 						e.printStackTrace();
@@ -353,15 +353,19 @@ public class RecordCommands {
 				}
 
 				if (args[1].equalsIgnoreCase("past")) {
-					s.sendMessage("§c-----§a" + player + "'s Record§c-----");
-					s.sendMessage("§6ID §f- §3Reason");
 					ResultSet bans = Methods.getAllPreviousBans(player);
 					try {
-						while (bans.next()) {
+						if (!bans.next()) {
+							s.sendMessage("§cThere are no previous bans for that player.");
+							return true;
+						}
+						s.sendMessage("§c-----§a" + player + "'s Record§c-----");
+						s.sendMessage("§6ID §f- §3Reason");
+						do {
 							int id = bans.getInt("id");
 							String reason = bans.getString("reason");
 							s.sendMessage("§6" + id + " §f- §3" + reason);
-						}
+						} while (bans.next());
 					} catch (SQLException e) {
 						e.printStackTrace();
 					}
