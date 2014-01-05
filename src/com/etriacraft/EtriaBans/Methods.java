@@ -175,7 +175,7 @@ public class Methods {
 				+ "'" + player.toLowerCase() + "', "
 				+ "'" + bandate + "', "
 				+ banlength + ", "
-				+ unbandate + ", "
+				+ "'" + unbandate + "', "
 				+ "'" + banner.toLowerCase() + "', "
 				+ "'" + reason + "');");
 		// Adds them to the HashMap
@@ -198,7 +198,7 @@ public class Methods {
 		DBConnection.sql.modifyQuery("INSERT INTO eb_bans(player, bandate, banlength, unbandate, bannedby, reason) VALUES ("
 				+ "'" + player.toLowerCase() + "', "
 				+ "'" + bandate + "', "
-				+ "'" + length + "', "
+				+ length + ", "
 				+ "'" + unbandate + "', "
 				+ "'" + banner.toLowerCase() + "', "
 				+ "'" + reason + "');");
@@ -956,7 +956,7 @@ public class Methods {
 		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE player = '" + player.toLowerCase() + "'");
 		try {
 			if (rs2.next()) {
-				return new Ban(rs2.getString("player"), rs2.getString("bandate"), rs2.getInt("length"), rs2.getString("unbandate"), rs2.getString("bannedby"), rs2.getString("reason"));
+				return new Ban(rs2.getString("player"), rs2.getString("bandate"), rs2.getInt("banlength"), rs2.getString("unbandate"), rs2.getString("bannedby"), rs2.getString("reason"));
 			} else {
 				return null;
 			}
@@ -976,7 +976,7 @@ public class Methods {
 		
 		try {
 			if (rs2.next()) {
-				return new Mute(rs2.getString("player"), rs2.getString("mutedate"), rs2.getInt("length"), rs2.getString("unmutedate"), rs2.getString("mutedby"), rs2.getString("reason"));
+				return new Mute(rs2.getString("player"), rs2.getString("mutedate"), rs2.getInt("banlength"), rs2.getString("unmutedate"), rs2.getString("mutedby"), rs2.getString("reason"));
 			} else {
 				return null;
 			}

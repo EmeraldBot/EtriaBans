@@ -174,7 +174,7 @@ public class BanCommands {
 						return true;
 					}
 					
-					Methods.tempBanPlayer(player, reason, s.getName(), timeInSeconds);
+					Methods.tempBanPlayer(player3.getName(), reason.replaceAll("'", ""), s.getName(), timeInSeconds);
 					for (Player player2: Bukkit.getOnlinePlayers()) {
 						if (player2.hasPermission("etriabans.announce")) {
 							if (timeDiff.contains("s")) {
@@ -194,7 +194,7 @@ public class BanCommands {
 					return true;
 				}
 
-				Methods.tempBanPlayer(player, reason, s.getName(), timeInSeconds);
+				Methods.tempBanPlayer(player, reason.replaceAll("'", ""), s.getName(), timeInSeconds);
 				for (Player player2: Bukkit.getOnlinePlayers()) {
 					if (player2.hasPermission("etriabans.announce")) {
 						if (timeDiff.contains("s")) {
@@ -246,7 +246,7 @@ public class BanCommands {
 						return true;
 					}
 					
-					Methods.banPlayer(player3.getName(), reason, s.getName());
+					Methods.banPlayer(player3.getName(), reason.replaceAll("'", ""), s.getName());
 					for (Player player2: Bukkit.getOnlinePlayers()) {
 						if (player2.hasPermission("etriabans.announce")) {
 							player2.sendMessage("§7" + player3.getName() + "§a has been banned for §7" + reason);
@@ -260,7 +260,7 @@ public class BanCommands {
 					return true;
 				}
 
-				Methods.banPlayer(player, reason, s.getName());
+				Methods.banPlayer(player, reason.replaceAll("'", ""), s.getName());
 				for (Player player2: Bukkit.getOnlinePlayers()) {
 					if (player2.hasPermission("etriabans.announce")) {
 						player2.sendMessage("§7" + player + "§a has been banned for §7" + reason);
