@@ -148,6 +148,7 @@ public class MuteCommands {
 						s.sendMessage("§cThat player is already muted.");
 						return true;
 					}
+					player = player3.getName();
 				}
 
 				if (Methods.isMuted(player)) {
@@ -223,6 +224,7 @@ public class MuteCommands {
 						s.sendMessage("§cThat player is already muted.");
 						return true;
 					}
+					player = player3.getName();
 				}
 
 				if (Methods.isMuted(player)) {
