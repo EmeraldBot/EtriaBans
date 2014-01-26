@@ -178,16 +178,16 @@ public class MuteCommands {
 				for (Player player2: Bukkit.getOnlinePlayers()) {
 					if (player2.hasPermission("etriabans.announce")) {
 						if (timeDiff.contains("s")) {
-							player2.sendMessage("§7" + player + "§a has been muted for §7" + timeDiff.replace("s", "") + " seconds.");
+							player2.sendMessage("§7" + player + "§a has been muted for §7" + timeDiff.replace("s", "") + " seconds §afor §7" + reason + "§a.");
 						}
 						if (timeDiff.contains("m")) {
-							player2.sendMessage("§7" + player + "§a has been muted for §7" + timeDiff.replace("m", "") + " minutes");
+							player2.sendMessage("§7" + player + "§a has been muted for §7" + timeDiff.replace("m", "") + " minutes §afor §7" + reason + "§a.");
 						}
 						if (timeDiff.contains("h")) {
-							player2.sendMessage("§7" + player + "§a has been muted for §7" + timeDiff.replace("h", "") + " hours.");
+							player2.sendMessage("§7" + player + "§a has been muted for §7" + timeDiff.replace("h", "") + " hours §afor §7" + reason + "§a.");
 						}
 						if (timeDiff.contains("d")) {
-							player2.sendMessage("§7" + player + "§a has been muted for §7" + timeDiff.replace("d", "") + " days.");
+							player2.sendMessage("§7" + player + "§a has been muted for §7" + timeDiff.replace("d", "") + " days §afor §7" + reason + "§a.");
 						}
 					}
 				}
