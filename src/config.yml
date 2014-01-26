@@ -9,3 +9,9 @@ Settings:
   CheckIPOnLogin: true
   CanOnlyUnbanOwnBans: true
   CanOnlyUnmuteOwnMutes: true
+  BlockedCommandsDuringMute:
+  - msg
+  - message
+  - tell
+  - whisper
+  - pm

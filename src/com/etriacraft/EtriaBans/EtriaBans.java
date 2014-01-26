@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -132,6 +134,15 @@ public class EtriaBans extends JavaPlugin {
 		getConfig().addDefault("Settings.CheckIPOnLogin", true);
 		getConfig().addDefault("Settings.CanOnlyUnbanOwnBans", true);
 		getConfig().addDefault("Settings.CanOnlyUnmuteOwnMutes", true);
+		
+		List<String> BlockedCommandsDuringMute = new ArrayList<String>();
+		BlockedCommandsDuringMute.add("msg");
+		BlockedCommandsDuringMute.add("message");
+		BlockedCommandsDuringMute.add("tell");
+		BlockedCommandsDuringMute.add("whisper");
+		BlockedCommandsDuringMute.add("pm");
+		
+		getConfig().addDefault("Settings.BlockedCommandsDuringMute", BlockedCommandsDuringMute);
 		
 		getConfig().options().copyDefaults(true);
 		saveConfig();

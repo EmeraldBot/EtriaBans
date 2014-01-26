@@ -2,6 +2,7 @@ package com.etriacraft.EtriaBans;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
@@ -9,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
 
@@ -20,6 +22,17 @@ public class PlayerListener implements Listener {
 		this.plugin = plugin;
 	}
 
+	@EventHandler
+	public void onPlayerCommandPreprocessEvent(PlayerCommandPreprocessEvent e) {
+		Player p = e.getPlayer();
+		List<String> blockedCommandsDuringMute = plugin.getConfig().getStringList("Settings.BlockedCommandsDuringMute");
+		for (String command: blockedCommandsDuringMute) {
+			if (e.getMessage().startsWith("/" + command)) {
+				e.setCancelled(true);
+				p.sendMessage("§cYou cannot perform that command while muted.");
+			}
+		}
+	}
 	@EventHandler
 	public void onPlayerChat(AsyncPlayerChatEvent e) {
 		Player player = e.getPlayer();
