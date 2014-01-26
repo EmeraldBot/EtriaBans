@@ -25,11 +25,13 @@ public class PlayerListener implements Listener {
 	@EventHandler
 	public void onPlayerCommandPreprocessEvent(PlayerCommandPreprocessEvent e) {
 		Player p = e.getPlayer();
-		List<String> blockedCommandsDuringMute = plugin.getConfig().getStringList("Settings.BlockedCommandsDuringMute");
-		for (String command: blockedCommandsDuringMute) {
-			if (e.getMessage().startsWith("/" + command)) {
-				e.setCancelled(true);
-				p.sendMessage("§cYou cannot perform that command while muted.");
+		if (Methods.isMuted(p.getName().toLowerCase())) {
+			List<String> blockedCommandsDuringMute = plugin.getConfig().getStringList("Settings.BlockedCommandsDuringMute");
+			for (String command: blockedCommandsDuringMute) {
+				if (e.getMessage().startsWith("/" + command)) {
+					e.setCancelled(true);
+					p.sendMessage("§cYou cannot perform that command while muted.");
+				}
 			}
 		}
 	}
@@ -58,7 +60,7 @@ public class PlayerListener implements Listener {
 			return;
 		}
 
-		
+
 		if (Methods.isBanned(player.getName())) {
 			if (!player.hasPermission("etriabans.exempt.bans")) {
 				if (!Methods.isBanTemp(player.getName())) {
