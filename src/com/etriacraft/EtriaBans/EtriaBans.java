@@ -16,6 +16,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.etriacraft.EtriaBans.Commands.*;
+import com.etriacraft.EtriaBans.Objects.IPBanData;
 
 public class EtriaBans extends JavaPlugin {
 
@@ -70,7 +71,7 @@ public class EtriaBans extends JavaPlugin {
 		reloadExportedDataConfig();
 		Set<String> bannedPlayers = Methods.getBannedPlayers();
 		Set<String> mutedPlayers = Methods.getMutedPlayers();
-		Set<String> bannedIPs = Methods.getBannedIPs();
+		Set<IPBanData> bannedIPs = Methods.getBannedIPs();
 		EtriaBans.log.info("Loaded " + mutedPlayers.size() + " muted players.");
 		EtriaBans.log.info("Loaded " + bannedPlayers.size() + " player bans.");
 		EtriaBans.log.info("Loaded " + bannedIPs.size() + " banned IPs");

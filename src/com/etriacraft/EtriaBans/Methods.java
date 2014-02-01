@@ -28,14 +28,14 @@ public class Methods {
 
 	public static HashMap<String, Boolean> bannedPlayers = new HashMap<String, Boolean>();
 	public static HashMap<String, Boolean> mutedPlayers = new HashMap<String, Boolean>();
-	public static Set<String> bannedIPs = new HashSet<String>();
+	public static Set<IPBanData> bannedIPs = new HashSet<IPBanData>();
 
 	public static void loadIPBans() {
 		ResultSet rs = DBConnection.sql.readQuery("SELECT * FROM eb_ipbans");
 		try {
 			while (rs.next()) {
-				String ip = rs.getString("ip");
-				bannedIPs.add(ip);
+				IPBanData ipBan = new IPBanData(rs.getString("ip"), rs.getString("date"), rs.getString("reason"), rs.getString("bannedby"));
+				bannedIPs.add(ipBan);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -67,7 +67,7 @@ public class Methods {
 		return mutedPlayers.keySet();
 	}
 
-	public static Set<String> getBannedIPs() {
+	public static Set<IPBanData> getBannedIPs() {
 		return bannedIPs;
 	}
 
@@ -87,15 +87,16 @@ public class Methods {
 		}
 	}
 
-	public static void banIP(String ip, String reason, String bannedby) {
+	public static void banIP(IPBanData ban) {
 		DBConnection.sql.modifyQuery("INSERT INTO eb_ipbans (ip, date, reason, bannedby) VALUES ("
-				+ "'" + ip + "', "
-				+ "'" + reason +  "', "
-				+ "'" + bannedby.toLowerCase() + "');");
-		bannedIPs.add(ip);
+				+ "'" + ban.getIP() + "', "
+				+ "'" + ban.getDate() + "', "
+				+ "'" + ban.getReason() +  "', "
+				+ "'" + ban.getBannedBy() + "');");
+		bannedIPs.add(ban);
 		for (Player player: Bukkit.getOnlinePlayers()) {
-			if (player.getAddress().getAddress().getHostAddress().equals(ip) && !player.hasPermission("etriabans.exempt.bans")) {
-				player.kickPlayer("§cThis IP has been banned for: §f" + reason);
+			if (player.getAddress().getAddress().getHostAddress().equals(ban.getIP()) && !player.hasPermission("etriabans.exempt.bans")) {
+				player.kickPlayer("§cThis IP has been banned for: §f" + ban.getReason());
 			}
 		}
 	}
@@ -115,7 +116,10 @@ public class Methods {
 	}
 
 	public static boolean isIPBanned(String ip) {
-		return bannedIPs.contains(ip);
+		for (IPBanData data: bannedIPs) {
+			if (data.getIP().equalsIgnoreCase(ip)) return true;
+		}
+		return false;
 	}
 
 	public static boolean isBanned(String player) {

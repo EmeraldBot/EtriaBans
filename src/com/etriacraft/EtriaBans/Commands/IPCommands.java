@@ -7,6 +7,7 @@ import org.bukkit.command.PluginCommand;
 
 import com.etriacraft.EtriaBans.EtriaBans;
 import com.etriacraft.EtriaBans.Methods;
+import com.etriacraft.EtriaBans.Objects.IPBanData;
 
 public class IPCommands {
 	
@@ -47,7 +48,9 @@ public class IPCommands {
 					s.sendMessage("§cYou cannot IP ban yourself.");
 					return true;
 				}
-				Methods.banIP(ip, reason, s.getName());
+				
+				IPBanData ipBanData = new IPBanData(ip, Methods.getCurrentDate(), reason, s.getName().toLowerCase());
+				Methods.banIP(ipBanData);
 				return true;
 			}
 		}; banip.setExecutor(exe);
