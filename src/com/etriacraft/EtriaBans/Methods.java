@@ -980,7 +980,7 @@ public class Methods {
 		
 		try {
 			if (rs2.next()) {
-				return new Mute(rs2.getString("player"), rs2.getString("mutedate"), rs2.getInt("banlength"), rs2.getString("unmutedate"), rs2.getString("mutedby"), rs2.getString("reason"));
+				return new Mute(rs2.getString("player"), rs2.getString("mutedate"), rs2.getInt("mutelength"), rs2.getString("unmutedate"), rs2.getString("mutedby"), rs2.getString("reason"));
 			} else {
 				return null;
 			}
