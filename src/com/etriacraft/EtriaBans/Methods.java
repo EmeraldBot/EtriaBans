@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -26,8 +27,8 @@ public class Methods {
 
 	private static int importPlayerDataTask, importCurrentBanTask, importBanDataTask, importMuteDataTask, importWarnDataTask, importkickDataTask, importCurrentMuteTask, importIPBanDataTask;
 
-	public static HashMap<String, Boolean> bannedPlayers = new HashMap<String, Boolean>();
-	public static HashMap<String, Boolean> mutedPlayers = new HashMap<String, Boolean>();
+	public static HashMap<String, Boolean> bannedPlayers = new HashMap<String, Boolean>(); // {uuid, isTemporary}
+	public static HashMap<String, Boolean> mutedPlayers = new HashMap<String, Boolean>(); // {uuid, isTemporary}
 	public static Set<IPBanData> bannedIPs = new HashSet<IPBanData>();
 
 	public static void loadIPBans() {
@@ -46,7 +47,7 @@ public class Methods {
 		ResultSet rs = DBConnection.sql.readQuery("SELECT * FROM eb_bans");
 		try {
 			while (rs.next()) {
-				String player = rs.getString("player");
+				String player = rs.getString("uuid");
 				if (!rs.getString("unbandate").equals("0")) {
 					bannedPlayers.put(player, true);
 				} else {
@@ -75,7 +76,7 @@ public class Methods {
 		ResultSet rs = DBConnection.sql.readQuery("SELECT * FROM eb_mutes");
 		try {
 			while (rs.next()) {
-				String player = rs.getString("player");
+				String player = rs.getString("uuid");
 				if (!rs.getString("unmutedate").equals("0")) {
 					mutedPlayers.put(player, true);
 				} else {
@@ -122,27 +123,27 @@ public class Methods {
 		return false;
 	}
 
-	public static boolean isBanned(String player) {
-		return bannedPlayers.containsKey(player.toLowerCase());
+	public static boolean isBanned(UUID uuid) {
+		return bannedPlayers.containsKey(uuid.toString());
 	}
 
-	public static boolean isMuted(String string) {
-		return mutedPlayers.containsKey(string.toLowerCase());
+	public static boolean isMuted(UUID uuid) {
+		return mutedPlayers.containsKey(uuid.toString());
 	}
 
-	public static boolean isBanTemp(String player) {
-		if (bannedPlayers.get(player.toLowerCase())) return true;
+	public static boolean isBanTemp(UUID uuid) {
+		if (bannedPlayers.get(uuid.toString())) return true;
 		return false;
 	}
 
-	public static boolean isMuteTemp(String player) {
-		if (mutedPlayers.get(player.toLowerCase())) return true;
+	public static boolean isMuteTemp(UUID uuid) {
+		if (mutedPlayers.get(uuid.toString())) return true;
 		return false;
 
 	}
 
-	public static String getBanReason(String player) {
-		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE player = '" + player.toLowerCase() + "'");
+	public static String getBanReason(UUID uuid) {
+		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE uuid = '" + uuid.toString() + "'");
 		try {
 			if (rs2.next()) {
 				return rs2.getString("reason");
@@ -155,8 +156,8 @@ public class Methods {
 		return null;
 	}
 
-	public static String getMuteReason(String player) {
-		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_mutes WHERE player = '" + player.toLowerCase() + "'");
+	public static String getMuteReason(UUID uuid) {
+		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_mutes WHERE uuid = '" + uuid.toString() + "'");
 		try {
 			if (rs2.next()) {
 				return rs2.getString("reason");
@@ -169,144 +170,167 @@ public class Methods {
 		return null;
 	}
 
-	public static void banPlayer(String player, String reason, String banner) {
+	public static void banPlayer(UUID uuid, String reason, String banner) {
 		String bandate = getCurrentDate();
 		int banlength = 0;
 		int unbandate = 0;
 
 		// Adds them to the database.
-		DBConnection.sql.modifyQuery("INSERT INTO eb_bans(player, bandate, banlength, unbandate, bannedby, reason) VALUES ("
-				+ "'" + player.toLowerCase() + "', "
+		DBConnection.sql.modifyQuery("INSERT INTO eb_bans(uuid, bandate, banlength, unbandate, bannedby, reason) VALUES ("
+				+ "'" + uuid + "', "
 				+ "'" + bandate + "', "
 				+ banlength + ", "
 				+ "'" + unbandate + "', "
 				+ "'" + banner.toLowerCase() + "', "
 				+ "'" + reason + "');");
 		// Adds them to the HashMap
-		bannedPlayers.put(player.toLowerCase(), false);
+		bannedPlayers.put(uuid.toString(), false);
 		// Kicks the player if they are online.
-		Player player2 = Bukkit.getPlayer(player);
+		Player player2 = Bukkit.getPlayer(uuid);
 		if (player2 != null) {
 			player2.kickPlayer("§cYou have been banned for: §f" + reason);
+			EtriaBans.log.info(player2.getName() + " has been banned by " + banner);
+		} else {
+			EtriaBans.log.info(uuid.toString() + " has been banned by " + banner);
 		}
-		EtriaBans.log.info(player + " has been banned by " + banner);
+
 	}
 
-	public static void tempBanPlayer(String player, String reason, String banner, int length) {
+	public static void tempBanPlayer(UUID uuid, String reason, String banner, int length) {
 		String bandate = getCurrentDate();
 		Calendar cal = Calendar.getInstance();
 		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		cal.add(Calendar.SECOND, length);
 		String unbandate = dateFormat.format(cal.getTime());
 
-		DBConnection.sql.modifyQuery("INSERT INTO eb_bans(player, bandate, banlength, unbandate, bannedby, reason) VALUES ("
-				+ "'" + player.toLowerCase() + "', "
+		DBConnection.sql.modifyQuery("INSERT INTO eb_bans(uuid, bandate, banlength, unbandate, bannedby, reason) VALUES ("
+				+ "'" +uuid.toString() + "', "
 				+ "'" + bandate + "', "
 				+ length + ", "
 				+ "'" + unbandate + "', "
 				+ "'" + banner.toLowerCase() + "', "
 				+ "'" + reason + "');");
-		bannedPlayers.put(player.toLowerCase(), true);
-		Player player2 = Bukkit.getPlayer(player);
+		bannedPlayers.put(uuid.toString(), true);
+		Player player2 = Bukkit.getPlayer(uuid);
 		if (player2 != null) {
 			player2.kickPlayer("§cYou have been banned for: §f" + reason);
+			EtriaBans.log.info(player2.getName() + " has been temporarily banned by " + banner);
+		} else {
+			EtriaBans.log.info(uuid.toString() + " has been temporarily banned by " + banner);
 		}
-		EtriaBans.log.info(player + " has been temporarily banned by " + banner);
 	}
 
-	public static void editBan(String player, int length) {
+	public static void editBan(UUID uuid, int length) {
 		Calendar cal = Calendar.getInstance();
 		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		cal.add(Calendar.SECOND, length);
 		String unbandate = dateFormat.format(cal.getTime());
 
-		DBConnection.sql.modifyQuery("UPDATE eb_bans SET banlength = " + length + " WHERE player = '" + player.toLowerCase() + "'");
-		DBConnection.sql.modifyQuery("UPDATE eb_bans SET unbandate = '" + unbandate + "' WHERE player = '" + player.toLowerCase() + "'");
-		bannedPlayers.remove(player.toLowerCase());
-		bannedPlayers.put(player.toLowerCase(), true);
+		DBConnection.sql.modifyQuery("UPDATE eb_bans SET banlength = " + length + " WHERE uuid = '" + uuid.toString() + "'");
+		DBConnection.sql.modifyQuery("UPDATE eb_bans SET unbandate = '" + unbandate + "' WHERE uuid = '" + uuid.toString() + "'");
+		bannedPlayers.remove(uuid.toString());
+		bannedPlayers.put(uuid.toString(), true);
 	}
 
-	public static void editMute(String player, int length) {
+	public static void editMute(UUID uuid, int length) {
 		Calendar cal = Calendar.getInstance();
 		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		cal.add(Calendar.SECOND, length);
 		String unmutedate = dateFormat.format(cal.getTime());
 
-		DBConnection.sql.modifyQuery("UPDATE eb_mutes SET mutelength = " + length + " WHERE player = '" + player.toLowerCase() + "'");
-		DBConnection.sql.modifyQuery("UPDATE eb_mutes SET unmutedate = " + unmutedate + " WHERE player = '" + player.toLowerCase() + "'");
+		DBConnection.sql.modifyQuery("UPDATE eb_mutes SET mutelength = " + length + " WHERE uuid = '" + uuid.toString() + "'");
+		DBConnection.sql.modifyQuery("UPDATE eb_mutes SET unmutedate = " + unmutedate + " WHERE uuid = '" + uuid.toString() + "'");
 
-		mutedPlayers.remove(player.toLowerCase());
-		mutedPlayers.put(player.toLowerCase(), true);
+		mutedPlayers.remove(uuid.toString());
+		mutedPlayers.put(uuid.toString(), true);
 	}
 
-	public static void mutePlayer(String player, String reason, String muter) {
-		EtriaBans.log.info(player + " has been muted by " + muter);
-		mutedPlayers.put(player.toLowerCase(), false);
-		DBConnection.sql.modifyQuery("INSERT INTO eb_mutes(player, mutedate, mutelength, unmutedate, mutedby, reason) VALUES ("
-				+ "'" + player.toLowerCase() + "', "
+	public static void mutePlayer(UUID uuid, String reason, String muter) {
+		mutedPlayers.put(uuid.toString(), false);
+		DBConnection.sql.modifyQuery("INSERT INTO eb_mutes(uuid, mutedate, mutelength, unmutedate, mutedby, reason) VALUES ("
+				+ "'" + uuid.toString() + "', "
 				+ "'" + getCurrentDate() + "', "
 				+ "'" + 0 + "', "
 				+ "'" + 0 + "', "
 				+ "'" + muter.toLowerCase() + "', "
 				+ "'" + reason + "');");
-		if (Bukkit.getPlayer(player) != null) {
-			Bukkit.getPlayer(player).sendMessage("§cYou have been muted for: §f" + reason);
+		if (Bukkit.getPlayer(uuid) != null) {
+			Bukkit.getPlayer(uuid).sendMessage("§cYou have been muted for: §f" + reason);
+			EtriaBans.log.info(Bukkit.getPlayer(uuid).getName() + " has been muted for " + reason);
+		} else {
+			EtriaBans.log.info(uuid + " has been muted for " + reason);
 		}
 	}
 
-	public static void tempMutePlayer(String player, String reason, String muter, int length) {
+	public static void tempMutePlayer(String uuid, String reason, String muter, int length) {
 		String mutedate = getCurrentDate();
 		Calendar cal = Calendar.getInstance();
 		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		cal.add(Calendar.SECOND, length);
 		String unmutedate = dateFormat.format(cal.getTime());
 
-		DBConnection.sql.modifyQuery("INSERT INTO eb_mutes(player, mutedate, mutelength, unmutedate, mutedby, reason) VALUES ("
-				+ "'" + player.toLowerCase() + "', "
+		DBConnection.sql.modifyQuery("INSERT INTO eb_mutes(uuid, mutedate, mutelength, unmutedate, mutedby, reason) VALUES ("
+				+ "'" + uuid.toString() + "', "
 				+ "'" + mutedate + "', "
 				+ "'" + length + "', "
 				+ "'" + unmutedate + "', "
 				+ "'" + muter.toLowerCase() + "', "
 				+ "'" + reason + "');");
 
-		mutedPlayers.put(player.toLowerCase(), true);
-		Player player2 = Bukkit.getPlayer(player);
+		mutedPlayers.put(uuid.toString(), true);
+		Player player2 = Bukkit.getPlayer(uuid);
 		if (player2 != null) {
 			player2.sendMessage("§cYou have been muted for: §f" + reason);
+			EtriaBans.log.info(player2.getName() + " has been temporarily muted by " + muter);
+		} else {
+			EtriaBans.log.info(uuid + " has been temporarily muted by " + muter);
 		}
-		EtriaBans.log.info(player + " has been temporarily muted by " + muter);
 	}
 
-	public static void warnPlayer(String player, String warner, String reason) {
-		System.out.println(player + " has been warned by " + warner);
-		DBConnection.sql.modifyQuery("INSERT INTO eb_warns(player, date, warner, reason) VALUES ("
-				+ "'" + player.toLowerCase() + "', "
+	public static void warnPlayer(UUID uuid, String warner, String reason) {
+		DBConnection.sql.modifyQuery("INSERT INTO eb_warns(uuid, date, warner, reason) VALUES ("
+				+ "'" + uuid.toString() + "', "
 				+ "'" + getCurrentDate() + "', "
 				+ "'" + warner.toLowerCase() + "', "
 				+ "'" + reason + "');");
-		Bukkit.getPlayer(player).sendMessage("§cYou have been warned for: §a" + reason + "§c by §a" + warner);
+		Bukkit.getPlayer(uuid).sendMessage("§cYou have been warned for: §a" + reason + "§c by §a" + warner);
+		EtriaBans.log.info(Bukkit.getPlayer(uuid) + " has been warned by " + warner);
 	}
 
-	public static void kickPlayer(String player, String kicker, String reason) {
-		System.out.println(player + " has been kicked by " + kicker);
-		DBConnection.sql.modifyQuery("INSERT INTO eb_kicks(player, date, kicker, reason) VALUES ("
-				+ "'" + player.toLowerCase() + "', "
+	public static void kickPlayer(UUID uuid, String kicker, String reason) {
+		DBConnection.sql.modifyQuery("INSERT INTO eb_kicks(uuid, date, kicker, reason) VALUES ("
+				+ "'" + uuid.toString() + "', "
 				+ "'" + getCurrentDate() + "', "
 				+ "'" + kicker.toLowerCase() + "', "
 				+ "'" + reason + "');");
-		Bukkit.getPlayer(player).kickPlayer("§cYou have been kicked for: §f" + reason);
+		Bukkit.getPlayer(uuid).kickPlayer("§cYou have been kicked for: §f" + reason);
+		EtriaBans.log.info(Bukkit.getPlayer(uuid).getName() + " has been kicked for " + reason);
 	}
 
-	public static void logNewIP(String player, String ip) {
-		DBConnection.sql.modifyQuery("INSERT INTO eb_players (player, ip) VALUES ("
+	public static void logNewIP(UUID uuid, String player, String ip) {
+		DBConnection.sql.modifyQuery("INSERT INTO eb_players (uuid, player, ip) VALUES ("
+				+ "'" + uuid.toString() + "', "
 				+ "'" + player.toLowerCase() + "', "
 				+ "'" + ip + "');");
 	}
 
-	public static void updateIP(String player, String ip) {
-		DBConnection.sql.modifyQuery("UPDATE eb_players SET ip = '" + ip + "' WHERE player = '" + player.toLowerCase() + "';");
+	public static void updateIP(UUID uuid, String ip) {
+		DBConnection.sql.modifyQuery("UPDATE eb_players SET ip = '" + ip + "' WHERE uuid = '" + uuid.toString() + "';");
 	}
 
+	public static String getLoggedIP(UUID uuid) {
+		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_players WHERE uuid = '" + uuid.toString() + "'");
+		try {
+			if (rs2.next()) {
+				return rs2.getString("ip");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	@Deprecated
 	public static String getLoggedIP(String player) {
 		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_players WHERE player = '" + player.toLowerCase() + "'");
 		try {
@@ -323,14 +347,15 @@ public class Methods {
 
 	public static void checkMutes() {
 		System.out.println("Checking for expired temp mutes.");
-		for (String player: mutedPlayers.keySet()) {
-			if (isMuteTemp(player)) {
-				Date unbandate = Methods.getUnmuteDate(player);
+		for (String id: mutedPlayers.keySet()) {
+			UUID uuid = UUID.fromString(id);
+			if (isMuteTemp(uuid)) {
+				Date unbandate = Methods.getUnmuteDate(uuid);
 				Date currentDate = getCurrentDateAsDate();
 
 				long timeUntilUnmute = (unbandate.getTime() - currentDate.getTime());
 				if (timeUntilUnmute <= 0) {
-					unmutePlayer(player, "CONSOLE");
+					unmutePlayer(uuid, "CONSOLE");
 				}
 			}
 		}
@@ -384,37 +409,38 @@ public class Methods {
 		final LinkedList<Mute> mute = new LinkedList<Mute>();
 		final LinkedList<IPBanData> ipBanData = new LinkedList<IPBanData>();
 		if (data.get("players") != null) {
-			for (String player: data.getConfigurationSection("players").getKeys(false)) {
-				String ip = data.getString("players." + player + ".ip");
-				PlayerData pdata = new PlayerData(player, ip);
+			for (String uuid: data.getConfigurationSection("players").getKeys(false)) {
+				String ip = data.getString("players." + uuid + ".ip");
+				String name = data.getString("players." + uuid + ".name");
+				PlayerData pdata = new PlayerData(UUID.fromString(uuid), name, ip);
 				playerData.add(pdata);
 			}
 		}
 
 		if (data.get("previousbans") != null) { // There are previous bans to import
 			for (String id: data.getConfigurationSection("previousbans").getKeys(false)) {
-				String player = data.getString("previousbans." + id + ".player");
+				String uuid = data.getString("previousbans." + id + ".uuid");
 				String bandate = data.getString("previousbans." + id + ".bandate");
 				String unbandate = data.getString("previousbans." + id + ".unbandate");
 				String bannedby = data.getString("previousbans." + id + ".bannedby");
 				String unbannedby = data.getString("previousbans." + id + ".unbannedby");
 				String reason = data.getString("previousbans." + id + ".reason");
 
-				BanData bdata = new BanData(player, bandate, unbandate, bannedby, unbannedby, reason);
+				BanData bdata = new BanData(UUID.fromString(uuid), bandate, unbandate, bannedby, unbannedby, reason);
 				banData.add(bdata);
 			}
 		}
 
 		if (data.get("previousmutes") != null) {
 			for (String id: data.getConfigurationSection("previousmutes").getKeys(false)) {
-				String player = data.getString("previousmutes." + id + ".player");
+				String player = data.getString("previousmutes." + id + ".uuid");
 				String mutedate = data.getString("previousmutes." + id + ".mutedate");
 				String unmutedate = data.getString("previousmutes." + id + ".unmutedate");
 				String mutedby = data.getString("previousmutes." + id + ".mutedby");
 				String unmutedby = data.getString("previousmutes." + id + ".unmutedby");
 				String reason = data.getString("previousmutes." + id + ".reason");
 
-				MuteData mdata = new MuteData(player, mutedate, unmutedate, mutedby, unmutedby, reason);
+				MuteData mdata = new MuteData(UUID.fromString(player), mutedate, unmutedate, mutedby, unmutedby, reason);
 				muteData.add(mdata);
 			}
 		}
@@ -439,7 +465,7 @@ public class Methods {
 				String bannedby = data.getString("bans." + player + ".bannedby");
 				String reason = data.getString("bans." + player + ".reason");
 
-				Ban currentBan = new Ban(player, bandate, banlength, unbandate, bannedby, reason);
+				Ban currentBan = new Ban(UUID.fromString(player), bandate, banlength, unbandate, bannedby, reason);
 				ban.add(currentBan);
 			}
 		}
@@ -452,7 +478,7 @@ public class Methods {
 				String mutedby = data.getString("mutes." + player + ".mutedby");
 				String reason = data.getString("mutes." + player + ".reason");
 
-				Mute currentMute = new Mute(player, mutedate, mutelength, unmutedate, mutedby, reason);
+				Mute currentMute = new Mute(UUID.fromString(player), mutedate, mutelength, unmutedate, mutedby, reason);
 				mute.add(currentMute);
 			}
 		}
@@ -463,7 +489,7 @@ public class Methods {
 				String warner = data.getString("warns." + player + ".warner");
 				String reason = data.getString("warns." + player + ".reason");
 
-				WarnData wData = new WarnData(player, date, warner, reason);
+				WarnData wData = new WarnData(UUID.fromString(player), date, warner, reason);
 				warnData.add(wData);
 			}
 		}
@@ -474,7 +500,7 @@ public class Methods {
 				String kicker = data.getString("kicks." + player + ".kicker");
 				String reason = data.getString("kicks." + player + ".reason");
 
-				KickData kData = new KickData(player, date, kicker, reason);
+				KickData kData = new KickData(UUID.fromString(player), date, kicker, reason);
 				kickData.add(kData);
 			}
 		}
@@ -520,8 +546,8 @@ public class Methods {
 
 					Mute cMute = mute.pop();
 
-					DBConnection.sql.modifyQuery("INSERT INTO eb_mutes (player, mutedate, mutelength, unmutedate, mutedby, reason) VALUES ("
-							+ "'" + cMute.getPlayer() + "', "
+					DBConnection.sql.modifyQuery("INSERT INTO eb_mutes (uuid, mutedate, mutelength, unmutedate, mutedby, reason) VALUES ("
+							+ "'" + cMute.getUUID().toString() + "', "
 							+ "'" + cMute.getDate() + "', "
 							+ cMute.getLength() + ", "
 							+ "'" + cMute.getUnmuteDate() + "', "
@@ -544,8 +570,8 @@ public class Methods {
 
 					KickData kData = kickData.pop();
 
-					DBConnection.sql.modifyQuery("INSERT INTO eb_kicks (player, date, kicker, reason) VALUES ("
-							+ "'" + kData.getPlayer() + "', "
+					DBConnection.sql.modifyQuery("INSERT INTO eb_kicks (uuid, date, kicker, reason) VALUES ("
+							+ "'" + kData.getUUID().toString() + "', "
 							+ "'" + kData.getDate() + "', "
 							+ "'" + kData.getKicker() + "', "
 							+ "'" + kData.getReason() + "');");
@@ -568,8 +594,8 @@ public class Methods {
 
 					WarnData wData = warnData.pop();
 
-					DBConnection.sql.modifyQuery("INSERT INTO eb_warns (player, date, warner, reason) VALUES ("
-							+ "'" + wData.getPlayer() + "', "
+					DBConnection.sql.modifyQuery("INSERT INTO eb_warns (uuid, date, warner, reason) VALUES ("
+							+ "'" + wData.getUUID().toString() + "', "
 							+ "'" + wData.getDate() + "', "
 							+ "'" + wData.getWarner() + "', "
 							+ "'" + wData.getReason() + "');");
@@ -578,6 +604,7 @@ public class Methods {
 				}
 			}
 		}, 0, 40);
+		
 		importMuteDataTask = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 			@Override
 			public void run() {
@@ -589,8 +616,8 @@ public class Methods {
 					}
 					MuteData prevMute = muteData.pop();
 
-					DBConnection.sql.modifyQuery("INSERT INTO eb_previous_mutes (player, mutedate, unmutedate, mutedby, unmutedby, reason) VALUES ("
-							+ "'" + prevMute.getPlayer() + "', "
+					DBConnection.sql.modifyQuery("INSERT INTO eb_previous_mutes (uuid, mutedate, unmutedate, mutedby, unmutedby, reason) VALUES ("
+							+ "'" + prevMute.getUUID().toString() + "', "
 							+ "'" + prevMute.getDate() + "', "
 							+ "'" + prevMute.getUnmuteDate() + "', "
 							+ "'" + prevMute.getMutedBy() + "', "
@@ -611,8 +638,8 @@ public class Methods {
 						break;
 					}
 					BanData prevBan = banData.pop();
-					DBConnection.sql.modifyQuery("INSERT INTO eb_previous_bans (player, bandate, unbandate, bannedby, unbannedby, reason) VALUES ("
-							+ "'" + prevBan.getPlayer() + "', "
+					DBConnection.sql.modifyQuery("INSERT INTO eb_previous_bans (uuid, bandate, unbandate, bannedby, unbannedby, reason) VALUES ("
+							+ "'" + prevBan.getUUID().toString() + "', "
 							+ "'" + prevBan.getDate() + "', "
 							+ "'" + prevBan.getUnbanDate() + "', "
 							+ "'" + prevBan.getBannedBy() + "', "
@@ -636,8 +663,8 @@ public class Methods {
 
 					Ban currentBan = ban.pop();
 
-					DBConnection.sql.modifyQuery("INSERT INTO eb_bans (player, bandate, banlength, unbandate, bannedby, reason) VALUES ("
-							+ "'" + currentBan.getPlayer() + "', "
+					DBConnection.sql.modifyQuery("INSERT INTO eb_bans (uuid, bandate, banlength, unbandate, bannedby, reason) VALUES ("
+							+ "'" + currentBan.getUUID().toString() + "', "
 							+ "'" + currentBan.getDate() + "', "
 							+ currentBan.getLength() + ", "
 							+ "'" + currentBan.getUnbanDate() + "', "
@@ -659,7 +686,8 @@ public class Methods {
 
 					PlayerData data = playerData.pop();
 
-					DBConnection.sql.modifyQuery("INSERT INTO eb_players (player, ip) VALUES ("
+					DBConnection.sql.modifyQuery("INSERT INTO eb_players (uuid, player, ip) VALUES ("
+							+ "'" + data.getUUID().toString() + "', "
 							+ "'" + data.getPlayer() + "', "
 							+ "'" + data.getIP() + "');");
 					counter++;	
@@ -688,10 +716,12 @@ public class Methods {
 
 			} else {
 				do {
+					String uuid = playerData.getString("uuid");
 					String player = playerData.getString("player");
 					String ip = playerData.getString("ip");
 
-					plugin.getExportedDataConfig().set("players." + player + ".ip", ip);
+					plugin.getExportedDataConfig().set("players." + uuid + "." + ".name", player);
+					plugin.getExportedDataConfig().set("players." + uuid + "." + ".ip", ip);
 				} while (playerData.next());
 			}
 
@@ -718,14 +748,14 @@ public class Methods {
 			} else {
 				int id = 1;
 				do {
-					String player = previousBans.getString("player");
+					String player = previousBans.getString("uuid");
 					String bandate = previousBans.getString("bandate");
 					String unbandate = previousBans.getString("unbandate");
 					String bannedby = previousBans.getString("bannedby");
 					String unbannedby = previousBans.getString("unbannedby");
 					String reason = previousBans.getString("reason");
 
-					plugin.getExportedDataConfig().set("previousbans." + id + ".player", player);
+					plugin.getExportedDataConfig().set("previousbans." + id + ".uuid", player);
 					plugin.getExportedDataConfig().set("previousbans." + id + ".bandate", bandate);
 					plugin.getExportedDataConfig().set("previousbans." + id + ".unbandate", unbandate);
 					plugin.getExportedDataConfig().set("previousbans." + id + ".bannedby", bannedby);
@@ -739,14 +769,14 @@ public class Methods {
 			} else {
 				int id = 1;
 				do {
-					String player = previousMutes.getString("player");
+					String player = previousMutes.getString("uuid");
 					String mutedate = previousMutes.getString("mutedate");
 					String unmutedate = previousMutes.getString("unmutedate");
 					String mutedby = previousMutes.getString("mutedby");
 					String unmutedby = previousMutes.getString("unmutedby");
 					String reason = previousMutes.getString("reason");
 
-					plugin.getExportedDataConfig().set("previousmutes." + id + ".player", player);
+					plugin.getExportedDataConfig().set("previousmutes." + id + ".uuid", player);
 					plugin.getExportedDataConfig().set("previousmutes." + id + ".mutedate", mutedate);
 					plugin.getExportedDataConfig().set("previousmutes." + id + ".unmutedate", unmutedate);
 					plugin.getExportedDataConfig().set("previousmutes." + id + ".mutedby", mutedby);
@@ -761,14 +791,14 @@ public class Methods {
 			} else {
 
 				do {
-					String player = bans.getString("player");
+					String player = bans.getString("uuid");
 					String bandate = bans.getString("bandate");
 					int banlength = bans.getInt("banlength");
 					String unbandate = bans.getString("unbandate");
 					String bannedby = bans.getString("bannedby");
 					String reason = bans.getString("reason");
 
-					plugin.getExportedDataConfig().set("bans." + player + ".bandate", bandate);
+					plugin.getExportedDataConfig().set("bans." + player + ".uuid", bandate);
 					plugin.getExportedDataConfig().set("bans." + player + ".banlength", banlength);
 					plugin.getExportedDataConfig().set("bans." + player + ".unbandate", unbandate);
 					plugin.getExportedDataConfig().set("bans." + player + ".bannedby", bannedby);
@@ -780,7 +810,7 @@ public class Methods {
 				// Do nothing, there are no mutes to export.
 			} else {
 				do {
-					String player = mutes.getString("player");
+					String player = mutes.getString("uuid");
 					String mutedate = mutes.getString("mutedate");
 					int mutelength = mutes.getInt("mutelength");
 					String unmutedate = mutes.getString("unmutedate");
@@ -799,7 +829,7 @@ public class Methods {
 				// Do nothing
 			} else {
 				do {
-					String player = warns.getString("player");
+					String player = warns.getString("uuid");
 					String date = warns.getString("date");
 					String warner = warns.getString("warner");
 					String reason = warns.getString("reason");
@@ -814,7 +844,7 @@ public class Methods {
 				// Do nothing
 			} else {
 				do {
-					String player = kicks.getString("player");
+					String player = kicks.getString("uuid");
 					String date = kicks.getString("date");
 					String kicker = kicks.getString("kicker");
 					String reason = kicks.getString("reason");
@@ -833,24 +863,25 @@ public class Methods {
 
 	public static void checkBans() {
 		System.out.println("Checking for expired temp bans.");
-		for (String player: bannedPlayers.keySet()) {
-			if (isBanTemp(player)) {
-				Date unbandate = Methods.getUnbanDate(player);
+		for (String id: bannedPlayers.keySet()) {
+			UUID uuid = UUID.fromString(id);
+			if (isBanTemp(uuid)) {
+				Date unbandate = Methods.getUnbanDate(uuid);
 				Date currentDate = Methods.getCurrentDateAsDate();
 
 				long timeUntilUnban = (unbandate.getTime() - currentDate.getTime()); // Returns time
 				if (timeUntilUnban <= 0) { // This means they have served their time
-					unbanPlayer(player, "CONSOLE");
+					unbanPlayer(uuid, "CONSOLE");
 				}
 			}
 		}
 	}
 
-	public static void unbanPlayer(String player, String unbanner) {
-		bannedPlayers.remove(player.toLowerCase()); // Remove from HashMap.
+	public static void unbanPlayer(UUID uuid, String unbanner) {
+		bannedPlayers.remove(uuid.toString()); // Remove from HashMap.
 
 		// Fetch info on the ban:
-		ResultSet rs = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE player = '" + player.toLowerCase() + "'");
+		ResultSet rs = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE uuid = '" + uuid.toString() + "'");
 		try {
 			if (rs.next()) {
 				String bandate = rs.getString("bandate");
@@ -858,24 +889,24 @@ public class Methods {
 				String banner = rs.getString("bannedby");
 				String reason = rs.getString("reason");
 
-				DBConnection.sql.modifyQuery("INSERT INTO eb_previous_bans (player, bandate, unbandate, bannedby, unbannedby, reason) VALUES ("
-						+ "'" + player.toLowerCase() + "', "
+				DBConnection.sql.modifyQuery("INSERT INTO eb_previous_bans (uuid, bandate, unbandate, bannedby, unbannedby, reason) VALUES ("
+						+ "'" + uuid.toString() + "', "
 						+ "'" + bandate + "', "
 						+ "'" + unbandate + "', "
 						+ "'" + banner.toLowerCase() + "', "
 						+ "'" + unbanner + "', "
 						+ "'" + reason + "'); ");
-				DBConnection.sql.modifyQuery("DELETE FROM eb_bans WHERE player = '" + player.toLowerCase() + "'");
-				EtriaBans.log.info(player + " has been unbanned by " + unbanner);
+				DBConnection.sql.modifyQuery("DELETE FROM eb_bans WHERE uuid = '" + uuid.toString() + "'");
+				EtriaBans.log.info(uuid + " has been unbanned by " + unbanner);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	public static void unmutePlayer(String player, String unmuter) {
-		mutedPlayers.remove(player.toLowerCase());
+	public static void unmutePlayer(UUID uuid, String unmuter) {
+		mutedPlayers.remove(uuid.toString());
 
-		ResultSet rs = DBConnection.sql.readQuery("SELECT * FROM eb_mutes WHERE player = '" + player.toLowerCase() + "'");
+		ResultSet rs = DBConnection.sql.readQuery("SELECT * FROM eb_mutes WHERE uuid = '" + uuid.toString() + "'");
 		try {
 			if (rs.next()) {
 				String mutedate = rs.getString("mutedate");
@@ -883,15 +914,15 @@ public class Methods {
 				String muter = rs.getString("mutedby");
 				String reason = rs.getString("reason");
 
-				DBConnection.sql.modifyQuery("INSERT INTO eb_previous_mutes (player, mutedate, unmutedate, mutedby, unmutedby, reason) VALUES ("
-						+ "'" + player.toLowerCase() + "', "
+				DBConnection.sql.modifyQuery("INSERT INTO eb_previous_mutes (uuid, mutedate, unmutedate, mutedby, unmutedby, reason) VALUES ("
+						+ "'" + uuid.toString() + "', "
 						+ "'" + mutedate + "', "
 						+ "'" + unmutedate + "', "
 						+ "'" + muter.toLowerCase() + "', "
 						+ "'" + unmuter.toLowerCase() + "', "
 						+ "'" + reason + "'); ");
-				DBConnection.sql.modifyQuery("DELETE FROM eb_mutes WHERE player = '" + player.toLowerCase() + "'");
-				EtriaBans.log.info(player + " has been unmuted by " + unmuter);
+				DBConnection.sql.modifyQuery("DELETE FROM eb_mutes WHERE uuid = '" + uuid.toString() + "'");
+				EtriaBans.log.info(uuid + " has been unmuted by " + unmuter);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -926,9 +957,9 @@ public class Methods {
 
 	}
 
-	public static Date getUnbanDate(String player) {
+	public static Date getUnbanDate(UUID uuid) {
 		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE player = '" + player.toLowerCase() + "'");
+		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE uuid = '" + uuid.toString() + "'");
 		try {
 			if (rs2.next()) {
 				String unbandate = rs2.getString("unbandate");
@@ -941,9 +972,9 @@ public class Methods {
 		return null;
 	}
 
-	public static Date getUnmuteDate(String player) {
+	public static Date getUnmuteDate(UUID uuid) {
 		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_mutes WHERE player = '" + player.toLowerCase() + "'");
+		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_mutes WHERE uuid = '" + uuid.toString() + "'");
 		try {
 			if (rs2.next()) {
 				String unmutedate = rs2.getString("unmutedate");
@@ -956,11 +987,11 @@ public class Methods {
 		return null;
 	}
 
-	public static Ban getBan(String player) {
-		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE player = '" + player.toLowerCase() + "'");
+	public static Ban getBan(UUID uuid) {
+		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE player = '" + uuid.toString() + "'");
 		try {
 			if (rs2.next()) {
-				return new Ban(rs2.getString("player"), rs2.getString("bandate"), rs2.getInt("banlength"), rs2.getString("unbandate"), rs2.getString("bannedby"), rs2.getString("reason"));
+				return new Ban((UUID) rs2.getObject("uuid"), rs2.getString("bandate"), rs2.getInt("banlength"), rs2.getString("unbandate"), rs2.getString("bannedby"), rs2.getString("reason"));
 			} else {
 				return null;
 			}
@@ -975,12 +1006,12 @@ public class Methods {
 		return DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE player = '" + player.toLowerCase() + "'");
 	}
 	
-	public static Mute getMute(String player) {
-		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_mutes WHERE player = '" + player.toLowerCase() + "'");
+	public static Mute getMute(UUID uuid) {
+		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_mutes WHERE uuid = '" + uuid.toString() + "'");
 		
 		try {
 			if (rs2.next()) {
-				return new Mute(rs2.getString("player"), rs2.getString("mutedate"), rs2.getInt("mutelength"), rs2.getString("unmutedate"), rs2.getString("mutedby"), rs2.getString("reason"));
+				return new Mute((UUID) rs2.getObject("uuid"), rs2.getString("mutedate"), rs2.getInt("mutelength"), rs2.getString("unmutedate"), rs2.getString("mutedby"), rs2.getString("reason"));
 			} else {
 				return null;
 			}
@@ -996,8 +1027,8 @@ public class Methods {
 	}
 	
 	
-	public static int getCurrentBanID(String player) {
-		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE player = '" + player.toLowerCase() + "'");
+	public static int getCurrentBanID(UUID uuid) {
+		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_bans WHERE uuid = '" + uuid.toString() + "'");
 		try {
 			if (rs2.next()) {
 				return rs2.getInt("id");
@@ -1090,8 +1121,8 @@ public class Methods {
 	}
 
 
-	public static int getTotalBans(String player) {
-		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_previous_bans WHERE player = '" + player.toLowerCase() + "'");
+	public static int getTotalBans(UUID uuid) {
+		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_previous_bans WHERE player = '" + uuid.toString() + "'");
 		int bans = 0;
 		try {
 			while (rs2.next()) {
@@ -1103,23 +1134,23 @@ public class Methods {
 		return bans;
 	}
 
-	public static ResultSet getAllPreviousWarns(String player) {
-		return DBConnection.sql.readQuery("SELECT * FROM eb_warns WHERE player = '" + player.toLowerCase() + "'");
+	public static ResultSet getAllPreviousWarns(UUID uuid) {
+		return DBConnection.sql.readQuery("SELECT * FROM eb_warns WHERE uuid = '" + uuid.toString() + "'");
 	}
-	public static ResultSet getAllPreviousBans(String player) {
-		return DBConnection.sql.readQuery("SELECT * FROM eb_previous_bans WHERE player = '" + player.toLowerCase() + "'");
-	}
-
-	public static ResultSet getAllPreviousKicks(String player) {
-		return DBConnection.sql.readQuery("SELECT * FROM eb_kicks WHERE player = '" + player.toLowerCase() + "'");
+	public static ResultSet getAllPreviousBans(UUID uuid) {
+		return DBConnection.sql.readQuery("SELECT * FROM eb_previous_bans WHERE uuid = '" + uuid.toString() + "'");
 	}
 
-	public static ResultSet getAllPreviousMutes(String player) {
-		return DBConnection.sql.readQuery("SELECT * FROM eb_previous_mutes WHERE player = '" + player.toLowerCase() + "'");
+	public static ResultSet getAllPreviousKicks(UUID uuid) {
+		return DBConnection.sql.readQuery("SELECT * FROM eb_kicks WHERE uuid = '" + uuid.toString() + "'");
 	}
 
-	public static int getTotalMutes(String player) {
-		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_previous_mutes WHERE player = '" + player.toLowerCase() + "'");
+	public static ResultSet getAllPreviousMutes(UUID uuid) {
+		return DBConnection.sql.readQuery("SELECT * FROM eb_previous_mutes WHERE uuid = '" + uuid.toString() + "'");
+	}
+
+	public static int getTotalMutes(UUID uuid) {
+		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_previous_mutes WHERE uuid = '" + uuid.toString() + "'");
 		int mutes = 0;
 		try {
 			while (rs2.next()) {
@@ -1131,8 +1162,8 @@ public class Methods {
 		return mutes;
 	}
 
-	public static int getTotalWarns(String player) {
-		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_warns WHERE player = '" + player.toLowerCase() + "'");
+	public static int getTotalWarns(UUID uuid) {
+		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_warns WHERE uuid = '" + uuid.toString() + "'");
 		int warns = 0;
 		try {
 			while (rs2.next()) {
@@ -1144,8 +1175,8 @@ public class Methods {
 		return warns;
 	}
 
-	public static int getTotalKicks(String player) {
-		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_kicks WHERE player = '" + player.toLowerCase() + "'");
+	public static int getTotalKicks(UUID uuid) {
+		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_kicks WHERE uuid = '" + uuid.toString() + "'");
 		int kicks = 0;
 		try {
 			while (rs2.next()) {

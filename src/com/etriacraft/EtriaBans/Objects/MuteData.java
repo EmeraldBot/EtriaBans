@@ -1,16 +1,18 @@
 package com.etriacraft.EtriaBans.Objects;
 
+import java.util.UUID;
+
 public class MuteData {
 	
-	final String player;
+	final UUID uuid;
 	final String mutedate;
 	final String unmutedate;
 	final String mutedby;
 	final String unmutedby;
 	final String reason;
 	
-	public MuteData(String player, String mutedate, String unmutedate, String mutedby, String unmutedby, String reason) {
-		this.player = player;
+	public MuteData(UUID uuid, String mutedate, String unmutedate, String mutedby, String unmutedby, String reason) {
+		this.uuid = uuid;
 		this.mutedate = mutedate;
 		this.unmutedate = unmutedate;
 		this.mutedby = mutedby;
@@ -18,8 +20,8 @@ public class MuteData {
 		this.reason = reason;
 	}
 	
-	public String getPlayer() {
-		return this.player;
+	public UUID getUUID() {
+		return this.uuid;
 	}
 	
 	public String getDate() {

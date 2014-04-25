@@ -2,20 +2,21 @@ package com.etriacraft.EtriaBans.Objects;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.UUID;
 
 import com.etriacraft.EtriaBans.DBConnection;
 
 public class Mute {
 
-	final String playerName;
+	final UUID uuid;
 	final String date;
 	final long length;
 	final String unmutedate;
 	final String mutedBy;
 	final String reason;
 	
-	public Mute(String playerName, String date, long length, String unmutedate, String mutedBy, String reason) {
-		this.playerName = playerName;
+	public Mute(UUID uuid, String date, long length, String unmutedate, String mutedBy, String reason) {
+		this.uuid = uuid;
 		this.date = date;
 		this.length = length;
 		this.unmutedate = unmutedate;
@@ -24,7 +25,7 @@ public class Mute {
 	}
 	
 	public int getID() {
-		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_mutes WHERE player = '" + this.playerName + "'");
+		ResultSet rs2 = DBConnection.sql.readQuery("SELECT * FROM eb_mutes WHERE uuid = '" + this.uuid.toString() + "'");
 		try {
 			if (rs2.next()) {
 				return rs2.getInt("id");
@@ -35,8 +36,8 @@ public class Mute {
 		return 0;
 	}
 	
-	public String getPlayer() {
-		return this.playerName;
+	public UUID getUUID() {
+		return this.uuid;
 	}
 	
 	public String getDate() {

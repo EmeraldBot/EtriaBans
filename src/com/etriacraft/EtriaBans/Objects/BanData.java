@@ -1,16 +1,18 @@
 package com.etriacraft.EtriaBans.Objects;
 
+import java.util.UUID;
+
 public class BanData {
 
-	final String playerName;
+	final UUID uuid;
 	final String bandate;
 	final String unbandate;
 	final String bannedby;
 	final String unbannedby;
 	final String reason;
 	
-	public BanData(String playerName, String bandate, String unbandate, String bannedby, String unbannedby, String reason) {
-		this.playerName = playerName;
+	public BanData(UUID uuid, String bandate, String unbandate, String bannedby, String unbannedby, String reason) {
+		this.uuid = uuid;
 		this.bandate = bandate;
 		this.unbandate = unbandate;
 		this.bannedby = bannedby;
@@ -18,8 +20,8 @@ public class BanData {
 		this.reason = reason;
 	}
 	
-	public String getPlayer() {
-		return this.playerName;
+	public UUID getUUID() {
+		return this.uuid;
 	}
 	
 	public String getDate() {

@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -25,7 +26,7 @@ public class PlayerListener implements Listener {
 	@EventHandler
 	public void onPlayerCommandPreprocessEvent(PlayerCommandPreprocessEvent e) {
 		Player p = e.getPlayer();
-		if (Methods.isMuted(p.getName().toLowerCase())) {
+		if (Methods.isMuted(p.getUniqueId())) {
 			List<String> blockedCommandsDuringMute = plugin.getConfig().getStringList("Settings.BlockedCommandsDuringMute");
 			for (String command: blockedCommandsDuringMute) {
 				if (e.getMessage().startsWith("/" + command)) {
@@ -38,7 +39,7 @@ public class PlayerListener implements Listener {
 	@EventHandler
 	public void onPlayerChat(AsyncPlayerChatEvent e) {
 		Player player = e.getPlayer();
-		if (Methods.isMuted(player.getName().toLowerCase()) && !player.hasPermission("etriabans.exempt.mutes")) {
+		if (Methods.isMuted(player.getUniqueId()) && !player.hasPermission("etriabans.exempt.mutes")) {
 			e.setCancelled(true);
 			player.sendMessage("§cYou cannot chat while muted.");
 		}
@@ -49,10 +50,10 @@ public class PlayerListener implements Listener {
 		Player player = e.getPlayer();
 		String ip = Methods.getLoggedIP(player.getName());
 		if (ip == null) { // We don't have an IP logged for this player.
-			Methods.logNewIP(player.getName().toLowerCase(), e.getAddress().getHostAddress());
+			Methods.logNewIP(player.getUniqueId(), player.getName().toLowerCase(), e.getAddress().getHostAddress());
 		} else {
 			if (!ip.equals(e.getAddress().getHostAddress())) {
-				Methods.updateIP(player.getName().toLowerCase(), e.getAddress().getHostAddress());
+				Methods.updateIP(player.getUniqueId(), e.getAddress().getHostAddress());
 			}
 		}
 		if (Methods.isIPBanned(e.getAddress().getHostAddress()) && !player.hasPermission("etriabans.exempt.bans")) {
@@ -60,36 +61,42 @@ public class PlayerListener implements Listener {
 			return;
 		}
 
+		UUID uuid = null;
+		try {
+			uuid = UUIDFetcher.getUUIDOf(player.getName());
+		} catch (Exception e2) {
+			e2.printStackTrace();
+		}
 
-		if (Methods.isBanned(player.getName())) {
+		if (Methods.isBanned(uuid)) {
 			if (!player.hasPermission("etriabans.exempt.bans")) {
-				if (!Methods.isBanTemp(player.getName())) {
-					e.disallow(Result.KICK_BANNED, "§cYou have been banned for: §f" + Methods.getBanReason(player.getName()));
+				if (!Methods.isBanTemp(uuid)) {
+					e.disallow(Result.KICK_BANNED, "§cYou have been banned for: §f" + Methods.getBanReason(uuid));
 					return;
-				} if (Methods.isBanTemp(player.getName())) {
-					Date unbandate = Methods.getUnbanDate(player.getName());
+				} if (Methods.isBanTemp(uuid)) {
+					Date unbandate = Methods.getUnbanDate(uuid);
 					Date currentDate = Methods.getCurrentDateAsDate();
 
 					long timeUntilUnban = (unbandate.getTime() - currentDate.getTime()) / 1000; // Returns time in seconds.
 					if (timeUntilUnban >= 86400) { // They have at least 24 hours left.
-						e.disallow(Result.KICK_BANNED, "§cYou have been banned for: §f" + Methods.getBanReason(player.getName()) + ". §cYour ban expires in §a~" + timeUntilUnban / 86400 + " days.");
+						e.disallow(Result.KICK_BANNED, "§cYou have been banned for: §f" + Methods.getBanReason(uuid) + ". §cYour ban expires in §a~" + timeUntilUnban / 86400 + " days.");
 						return;
 					}
 					if (timeUntilUnban >= 3600 && timeUntilUnban < 86400) { // They have at least 1 hour, but less than 24 hours left.)
-						e.disallow(Result.KICK_BANNED, "§cYou have been banned for: §f" + Methods.getBanReason(player.getName()) + ". §cYour ban expires in §a~" + timeUntilUnban / 3600 + " hours.");
+						e.disallow(Result.KICK_BANNED, "§cYou have been banned for: §f" + Methods.getBanReason(uuid) + ". §cYour ban expires in §a~" + timeUntilUnban / 3600 + " hours.");
 						return;
 					}
 					if (timeUntilUnban >= 60 && timeUntilUnban < 3600) { // They have at least 1 minute left, but no more than 1 hour left.)
-						e.disallow(Result.KICK_BANNED, "§cYou have been banned for: §f" + Methods.getBanReason(player.getName()) + ". §cYour ban expires in §a~" + timeUntilUnban / 60 + " minutes.");
+						e.disallow(Result.KICK_BANNED, "§cYou have been banned for: §f" + Methods.getBanReason(uuid) + ". §cYour ban expires in §a~" + timeUntilUnban / 60 + " minutes.");
 						return;
 					}
 					if (timeUntilUnban >= 1 && timeUntilUnban < 60) { // They have under 1 minute.
-						e.disallow(Result.KICK_BANNED, "§cYou have been banned for: §f" + Methods.getBanReason(player.getName()) + ". §cYour ban expires in §a~" + timeUntilUnban + " seconds.");
+						e.disallow(Result.KICK_BANNED, "§cYou have been banned for: §f" + Methods.getBanReason(uuid) + ". §cYour ban expires in §a~" + timeUntilUnban + " seconds.");
 						return;
 					}
 					if (timeUntilUnban <= 0) { // Ban expired.
 						e.allow();
-						Methods.unbanPlayer(player.getName(), "CONSOLE");
+						Methods.unbanPlayer(uuid, "CONSOLE");
 						return;
 					}
 				}
@@ -99,7 +106,13 @@ public class PlayerListener implements Listener {
 			Set<String> players = Methods.getPlayersWithIP(ip);
 			Set<String> players2 = new HashSet<String>();
 			for (String player2: players) {
-				if (Methods.isBanned(player2)) {
+				UUID id2 = null;
+				try {
+					id2 = UUIDFetcher.getUUIDOf(player2);
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				if (Methods.isBanned(id2)) {
 					if (Methods.getLoggedIP(player2).equalsIgnoreCase(ip)) {
 						players2.add(player2);
 					}

@@ -4,6 +4,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.entity.Player;
 
 import com.etriacraft.EtriaBans.EtriaBans;
 import com.etriacraft.EtriaBans.Methods;
@@ -44,7 +45,7 @@ public class IPCommands {
 					return true;
 				}
 				
-				if (Methods.getLoggedIP(s.getName().toLowerCase()).equals(ip)) {
+				if (((Player) s).getAddress().equals(ip)) {
 					s.sendMessage("§cYou cannot IP ban yourself.");
 					return true;
 				}

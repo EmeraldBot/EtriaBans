@@ -1,5 +1,7 @@
 package com.etriacraft.EtriaBans.Commands;
 
+import java.util.UUID;
+
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -9,6 +11,7 @@ import org.bukkit.entity.Player;
 
 import com.etriacraft.EtriaBans.EtriaBans;
 import com.etriacraft.EtriaBans.Methods;
+import com.etriacraft.EtriaBans.UUIDFetcher;
 import com.etriacraft.EtriaBans.Objects.Mute;
 
 public class MuteCommands {
@@ -45,7 +48,14 @@ public class MuteCommands {
 				
 				String player = args[0];
 				
-				if (!Methods.isMuted(player)) {
+				UUID uuid = null;
+				try {
+					uuid = UUIDFetcher.getUUIDOf(player);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+				if (!Methods.isMuted(uuid)) {
 					s.sendMessage("§cYou can't edit the mute of a player who isn't muted.");
 					return true;
 				}
@@ -70,7 +80,7 @@ public class MuteCommands {
 					return true;
 				}
 				
-				Methods.editMute(player, timeInSeconds);
+				Methods.editMute(uuid, timeInSeconds);
 				s.sendMessage("§7" + player + "'s §amute has been edited.");
 				return true;
 			}
@@ -89,13 +99,19 @@ public class MuteCommands {
 				}
 
 				String player = args[0];
-				if (!Methods.isMuted(player)) {
+				UUID uuid = null;
+				try {
+					uuid = UUIDFetcher.getUUIDOf(player);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				if (!Methods.isMuted(uuid)) {
 					s.sendMessage("§cYou can't unmute someone who isn't muted.");
 					return true;
 				}
 				
 				if (plugin.getConfig().getBoolean("Settings.CanOnlyUnmuteOwnMutes") && !s.hasPermission("etriabans.unmute.override")) {
-					Mute mute = Methods.getMute(player);
+					Mute mute = Methods.getMute(uuid);
 					
 					String mutedby = mute.getMutedBy();
 					if (!s.getName().equalsIgnoreCase(mutedby)) {
@@ -104,7 +120,7 @@ public class MuteCommands {
 					}
 				}
 
-				Methods.unmutePlayer(player, s.getName().toLowerCase());
+				Methods.unmutePlayer(uuid, s.getName().toLowerCase());
 				for (Player player2: Bukkit.getOnlinePlayers()) {
 					if (player2.hasPermission("etriabans.announce")) {
 						player2.sendMessage("§7" + player + " §ahas been unmuted.");
@@ -134,6 +150,13 @@ public class MuteCommands {
 				String timeDiff = args[1];
 				String reason = Methods.buildString(args, 2, " ");
 
+				UUID uuid = null;
+				try {
+					uuid = UUIDFetcher.getUUIDOf(player);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
 				Player player3 = Bukkit.getPlayer(player);
 				if (player3 != null) {
 					if (player3 == s) {
@@ -144,14 +167,14 @@ public class MuteCommands {
 						s.sendMessage("§cThat player cannot be muted.");
 						return true;
 					}
-					if (Methods.isMuted(player3.getName().toLowerCase())) {
+					if (Methods.isMuted(uuid)) {
 						s.sendMessage("§cThat player is already muted.");
 						return true;
 					}
 					player = player3.getName();
 				}
 
-				if (Methods.isMuted(player)) {
+				if (Methods.isMuted(uuid)) {
 					s.sendMessage("§cThat player is already muted.");
 					return true;
 				}
@@ -211,6 +234,12 @@ public class MuteCommands {
 				String player = args[0];
 
 				Player player3 = Bukkit.getPlayer(player);
+				UUID uuid = null;
+				try {
+					uuid = UUIDFetcher.getUUIDOf(player3.getName());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				if (player3 != null) {
 					if (player3 == s) {
 						s.sendMessage("§cYou can't mute yourself.");
@@ -220,19 +249,26 @@ public class MuteCommands {
 						s.sendMessage("§cThat player cannot be muted.");
 						return true;
 					}
-					if (Methods.isMuted(player3.getName())) {
+					if (Methods.isMuted(uuid)) {
 						s.sendMessage("§cThat player is already muted.");
 						return true;
 					}
 					player = player3.getName();
 				}
+				
+				UUID uuid2 = null;
+				try {
+					uuid2 = UUIDFetcher.getUUIDOf(player);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 
-				if (Methods.isMuted(player)) {
+				if (Methods.isMuted(uuid2)) {
 					s.sendMessage("§cThat player is already muted.");
 					return true;
 				}
 
-				Methods.mutePlayer(player, reason, s.getName().toLowerCase());
+				Methods.mutePlayer(uuid, reason, s.getName().toLowerCase());
 				for (Player player2: Bukkit.getOnlinePlayers()) {
 					if (player2.hasPermission("etriabans.announce")) {
 						player2.sendMessage("§7" + player + "§a has been muted for 7" + reason);

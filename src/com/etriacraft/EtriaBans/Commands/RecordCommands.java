@@ -2,7 +2,9 @@ package com.etriacraft.EtriaBans.Commands;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -10,6 +12,7 @@ import org.bukkit.command.PluginCommand;
 
 import com.etriacraft.EtriaBans.EtriaBans;
 import com.etriacraft.EtriaBans.Methods;
+import com.etriacraft.EtriaBans.UUIDFetcher;
 import com.etriacraft.EtriaBans.Objects.Ban;
 import com.etriacraft.EtriaBans.Objects.Mute;
 
@@ -69,6 +72,12 @@ public class RecordCommands {
 				}
 
 				String player = args[0].toLowerCase();
+				UUID uuid = null;
+				try {
+					uuid = UUIDFetcher.getUUIDOf(player);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				if (player.equalsIgnoreCase(s.getName())) {
 					if (!s.hasPermission("etriabans.muterecords.own") && !s.hasPermission("etriabans.muterecords.all")) {
 						s.sendMessage("§cYou don't have permission to do that.");
@@ -84,7 +93,7 @@ public class RecordCommands {
 				if (args[1].equalsIgnoreCase("past")) {
 					s.sendMessage("§c-----§a" + player + "'s Mute Record§c-----");
 					s.sendMessage("§6ID §f - §3Reason");
-					ResultSet mutes = Methods.getAllPreviousMutes(player);
+					ResultSet mutes = Methods.getAllPreviousMutes(uuid);
 
 					try {
 						do {
@@ -98,13 +107,12 @@ public class RecordCommands {
 				}
 
 				if (args[1].equalsIgnoreCase("current")) {
-					if (!Methods.isMuted(player)) {
+					if (!Methods.isMuted(uuid)) {
 						s.sendMessage("§7" + player + " §adoes not have a current mute.");
 						return true;
 					}
 
-					Mute mute = Methods.getMute(player);
-					//					ResultSet mute = Methods.getCurrentMute(player);
+					Mute mute = Methods.getMute(uuid);
 
 					int id = mute.getID();
 					String mutedate = mute.getDate();
@@ -118,7 +126,7 @@ public class RecordCommands {
 					s.sendMessage("§3Player: §a" + player);
 					s.sendMessage("§3Muted On: §a" + mutedate);
 					s.sendMessage("§3Muted By: §a" + mutedby);
-					if (Methods.isMuteTemp(player)) {
+					if (Methods.isMuteTemp(uuid)) {
 						if (length >= 86400) {
 							s.sendMessage("§3Mute Length: §a~" + (length / 86400) + " days");
 						}
@@ -164,13 +172,13 @@ public class RecordCommands {
 						}
 
 						s.sendMessage("§c-----§aEtriaBans Warn Record§c-----");
-						String player = warn.getString("player");
+						String player = warn.getString("uuid");
 						String date = warn.getString("date");
 						String warner = warn.getString("warner");
 						String reason = warn.getString("reason");
 
 						s.sendMessage("§3ID: §a" + id);
-						s.sendMessage("§3Player: §a" + player);
+						s.sendMessage("§3Player: §a" + Bukkit.getOfflinePlayer(player).getName());
 						s.sendMessage("§3Date: §a" + date);
 						s.sendMessage("§3Warned By: §a" + warner);
 						s.sendMessage("§3Reason: §a" + reason);
@@ -196,8 +204,14 @@ public class RecordCommands {
 							return true;
 						}
 					}
+					UUID uuid = null;
+					try {
+						uuid = UUIDFetcher.getUUIDOf(player);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 
-					ResultSet warns = Methods.getAllPreviousWarns(player);
+					ResultSet warns = Methods.getAllPreviousWarns(uuid);
 					try {
 						if (!warns.next()) {
 							s.sendMessage("§cThere are no prior warnings to display.");
@@ -245,13 +259,13 @@ public class RecordCommands {
 						}
 
 						s.sendMessage("§c-----§aEtriaBans Kick Record§c-----");
-						String player = kick.getString("player");
+						String player = kick.getString("uuid");
 						String date = kick.getString("date");
 						String kicker = kick.getString("kicker");
 						String reason = kick.getString("reason");
 
 						s.sendMessage("§3ID: §a" + id);
-						s.sendMessage("§3Player: §a" + player);
+						s.sendMessage("§3Player: §a" + Bukkit.getOfflinePlayer(player).getName());
 						s.sendMessage("§3Date: §a" + date);
 						s.sendMessage("§3Kicked By: §a" + kicker);
 						s.sendMessage("§3Reason: §a" + reason);
@@ -265,6 +279,12 @@ public class RecordCommands {
 				if (args[0].equalsIgnoreCase("player")) {
 					String player = args[1];
 
+					UUID uuid = null;
+					try {
+						uuid = UUIDFetcher.getUUIDOf(player);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 					if (player.equalsIgnoreCase(s.getName())) {
 						if (!s.hasPermission("etriabans.kickrecords.own") && !s.hasPermission("etriabans.kickrecords.all")) {
 							s.sendMessage("§cYou don't have permission to do that.");
@@ -277,7 +297,7 @@ public class RecordCommands {
 						}
 					}
 
-					ResultSet kicks = Methods.getAllPreviousKicks(player);
+					ResultSet kicks = Methods.getAllPreviousKicks(uuid);
 					try {
 						if (!kicks.next()) {
 							s.sendMessage("§cThere are no prior kicks to display.");
@@ -325,7 +345,7 @@ public class RecordCommands {
 
 						s.sendMessage("§c-----§aEtriaBans Record§c-----");
 						s.sendMessage("§3ID: §a" + id);
-						s.sendMessage("§3Player: §a" + ban.getString("player"));
+						s.sendMessage("§3Player: §a" + ban.getString("uuid"));
 						s.sendMessage("§3Ban Date: §a" + ban.getString("bandate"));
 						s.sendMessage("§3Reason: §a" + ban.getString("reason"));
 						s.sendMessage("§3Banned By: §a" + ban.getString("bannedby"));
@@ -340,6 +360,12 @@ public class RecordCommands {
 				} 
 
 				String player = args[0].toLowerCase();
+				UUID uuid = null;
+				try {
+					uuid = UUIDFetcher.getUUIDOf(player);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				if (player.equalsIgnoreCase(s.getName())) {
 					if (!s.hasPermission("etriabans.banrecords.own") && !s.hasPermission("etriabans.banrecords.all")) {
 						s.sendMessage("§cYou don't have permission to do that.");
@@ -353,7 +379,7 @@ public class RecordCommands {
 				}
 
 				if (args[1].equalsIgnoreCase("past")) {
-					ResultSet bans = Methods.getAllPreviousBans(player);
+					ResultSet bans = Methods.getAllPreviousBans(uuid);
 					try {
 						if (!bans.next()) {
 							s.sendMessage("§cThere are no previous bans for that player.");
@@ -372,12 +398,12 @@ public class RecordCommands {
 				}
 
 				if (args[1].equalsIgnoreCase("current")) {
-					if (!Methods.isBanned(player)) {
+					if (!Methods.isBanned(uuid)) {
 						s.sendMessage("§7" + player + " §adoes not have a current ban.");
 						return true;
 					}
 
-					Ban ban = Methods.getBan(player);
+					Ban ban = Methods.getBan(uuid);
 					
 					int id = ban.getID();
 					String bandate = ban.getDate();
@@ -390,7 +416,7 @@ public class RecordCommands {
 					s.sendMessage("§3ID: §a" + id);
 					s.sendMessage("§3Player: §a" + player);
 					s.sendMessage("§3Banned On: §a" + bandate);
-					if (Methods.isBanTemp(player)) {
+					if (Methods.isBanTemp(uuid)) {
 						if (banlength >= 86400) {
 							s.sendMessage("§3Ban Length: §a~" + (banlength / 86400) + " days");
 						}
@@ -423,26 +449,33 @@ public class RecordCommands {
 					}
 					String player = s.getName().toLowerCase();
 
-					int bans = Methods.getTotalBans(player);
-					int mutes = Methods.getTotalMutes(player);
-					int warns = Methods.getTotalWarns(player);
-					int kicks = Methods.getTotalKicks(player);
-					String ip = Methods.getLoggedIP(s.getName().toLowerCase());
+					UUID uuid = null;
+					try {
+						uuid = UUIDFetcher.getUUIDOf(player);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					
+					int bans = Methods.getTotalBans(uuid);
+					int mutes = Methods.getTotalMutes(uuid);
+					int warns = Methods.getTotalWarns(uuid);
+					int kicks = Methods.getTotalKicks(uuid);
+					String ip = Methods.getLoggedIP(uuid);
 
 					s.sendMessage("§c-----§aEtriaBans Record§c-----");
 					if (s.hasPermission("etriabans.records.canseeip")) {
 						s.sendMessage("§3IP Address: §a" + ip);
 					}
 					s.sendMessage("§3Total Bans: §a" + bans);
-					if (Methods.isMuted(player)) {
+					if (Methods.isMuted(uuid)) {
 						s.sendMessage("§3Total Mutes: §a" + (mutes + 1));
 					} else {
 						s.sendMessage("§3Total Mutes: §a" + mutes);
 					}
 					s.sendMessage("§3Total Warns: §a" + warns);
 					s.sendMessage("§3Total Kicks: §a" + kicks);
-					if (Methods.isMuted(player)) {
-						s.sendMessage("§3Current Mute For: §a" + Methods.getMuteReason(player));
+					if (Methods.isMuted(uuid)) {
+						s.sendMessage("§3Current Mute For: §a" + Methods.getMuteReason(uuid));
 					}
 					return true;
 				}
@@ -455,11 +488,18 @@ public class RecordCommands {
 
 					String player = args[0].toLowerCase();
 
-					int bans = Methods.getTotalBans(player);
-					int mutes = Methods.getTotalMutes(player);
-					int warns = Methods.getTotalWarns(player);
-					int kicks = Methods.getTotalKicks(player);
-					String ip = Methods.getLoggedIP(player.toLowerCase());
+					UUID uuid = null;
+					try {
+						uuid = UUIDFetcher.getUUIDOf(player);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					
+					int bans = Methods.getTotalBans(uuid);
+					int mutes = Methods.getTotalMutes(uuid);
+					int warns = Methods.getTotalWarns(uuid);
+					int kicks = Methods.getTotalKicks(uuid);
+					String ip = Methods.getLoggedIP(uuid);
 
 					s.sendMessage("§c-----§aEtriaBans Record§c-----");
 					s.sendMessage("§3Player: §a" + player);
@@ -468,7 +508,7 @@ public class RecordCommands {
 							s.sendMessage("§3IP Address: §a" + ip);
 						}
 					}
-					if (Methods.isBanned(player)) {
+					if (Methods.isBanned(uuid)) {
 						s.sendMessage("§3Total Bans: §a" + (bans + 1));
 					} else {
 						s.sendMessage("§3Total Bans: §a" + bans);
@@ -477,11 +517,11 @@ public class RecordCommands {
 					s.sendMessage("§3Total Warns: §a" + warns);
 					s.sendMessage("§3Total Kicks: §a" + kicks);
 
-					if (Methods.isBanned(player)) {
-						s.sendMessage("§3Current Ban For: §a" + Methods.getBanReason(player));
+					if (Methods.isBanned(uuid)) {
+						s.sendMessage("§3Current Ban For: §a" + Methods.getBanReason(uuid));
 					}
-					if (Methods.isMuted(player)) {
-						s.sendMessage("§3Current Mute For: §a" + Methods.getMuteReason(player));
+					if (Methods.isMuted(uuid)) {
+						s.sendMessage("§3Current Mute For: §a" + Methods.getMuteReason(uuid));
 					}
 
 					return true;

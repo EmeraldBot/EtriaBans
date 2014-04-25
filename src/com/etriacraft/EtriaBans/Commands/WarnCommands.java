@@ -53,7 +53,7 @@ EtriaBans plugin;
 					return true;
 				}
 				
-				Methods.warnPlayer(player.getName().toLowerCase(), s.getName().toLowerCase(), reason.replaceAll("'", ""));
+				Methods.warnPlayer(player.getUniqueId(), s.getName().toLowerCase(), reason.replaceAll("'", ""));
 				for (Player player2: Bukkit.getOnlinePlayers()) {
 					if (player2.hasPermission("etriabans.announce")) {
 						player2.sendMessage("§7" + player.getName() + " §ahas been warned by §7" + s.getName() + " §afor §7" + reason);

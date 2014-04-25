@@ -1,21 +1,23 @@
 package com.etriacraft.EtriaBans.Objects;
 
+import java.util.UUID;
+
 public class WarnData {
 
-	final String player;
+	final UUID uuid;
 	final String date;
 	final String warner;
 	final String reason;
 	
-	public WarnData(String player, String date, String warner, String reason) {
-		this.player = player;
+	public WarnData(UUID uuid, String date, String warner, String reason) {
+		this.uuid = uuid;
 		this.date = date;
 		this.warner = warner;
 		this.reason = reason;
 	}
 	
-	public String getPlayer() {
-		return this.player;
+	public UUID getUUID() {
+		return this.uuid;
 	}
 	
 	public String getDate() {

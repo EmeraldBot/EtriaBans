@@ -54,7 +54,8 @@ EtriaBans plugin;
 					return true;
 				}
 				
-				Methods.kickPlayer(player.getName().toLowerCase(), s.getName(), reason);
+				
+				Methods.kickPlayer(player.getUniqueId(), s.getName(), reason);
 				for (Player player2: Bukkit.getOnlinePlayers()) {
 					if (player2.hasPermission("etriabans.announce")) {
 						player2.sendMessage("§7" + player.getName() + "§a has been kicked for §7" + reason + ".");
